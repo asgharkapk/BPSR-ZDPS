@@ -60,14 +60,17 @@ namespace BPSR_ZDPS
 
         public static void SetPlayerInv(CharSerialize data)
         {
-            PlayerModData = new PlayerModDataSave()
+            lock (PlayerModData)
             {
-                ModulesPackage = data.ItemPackage?.Packages[5] ?? null,
-                Mod = data?.Mod ?? null
-            };
+                PlayerModData = new PlayerModDataSave()
+                {
+                    ModulesPackage = data.ItemPackage?.Packages[5] ?? null,
+                    Mod = data?.Mod ?? null
+                };
 
-            SaveModData(ModSavePath);
-            ModuleInvUpdated();
+                SaveModData(ModSavePath);
+                ModuleInvUpdated();
+            }
         }
 
         private static void ModuleInvUpdated()
@@ -223,37 +226,40 @@ namespace BPSR_ZDPS
 
             if (BestModResults.Count > 0)
             {
-                lock (BestModResults)
+                lock (PlayerModData)
                 {
-                    lock (FilteredModules)
+                    lock (BestModResults)
                     {
-                        bool[] resultsOpenStates = new bool[BestModResults.Count];
-                        resultsOpenStates[0] = true;
-                        for (int i = 0; i < BestModResults.Count; i++)
+                        lock (FilteredModules)
                         {
-                            ModComboResult modsResult = BestModResults[i];
-                            if (ImGui.CollapsingHeader($"Result: {i + 1} (Score: {modsResult.Score})", (resultsOpenStates[i] ? ImGuiTreeNodeFlags.DefaultOpen : ImGuiTreeNodeFlags.None)))
+                            bool[] resultsOpenStates = new bool[BestModResults.Count];
+                            resultsOpenStates[0] = true;
+                            for (int i = 0; i < BestModResults.Count; i++)
                             {
-                                var perLine = 3;
-                                var statPos = ImGui.GetCursorPos();
-                                for (int i1 = 0; i1 < modsResult.Stats.Length; i1++)
+                                ModComboResult modsResult = BestModResults[i];
+                                if (ImGui.CollapsingHeader($"Result: {i + 1} (Score: {modsResult.Score})", (resultsOpenStates[i] ? ImGuiTreeNodeFlags.DefaultOpen : ImGuiTreeNodeFlags.None)))
                                 {
-                                    PowerCore stat = modsResult.Stats[i1];
-                                    ImGui.SetCursorPos(statPos + new Vector2(i1 * 100, 0));
-                                    DrawModuleStat(stat.Id, stat.Value);
-                                }
-
-                                var mods = modsResult.ModuleSet.Mods;
-                                for (int i1 = 0; i1 < mods.Length; i1++)
-                                {
-                                    var modId = FilteredModules[mods[i1]];
-                                    var modItem = PlayerModData.ModulesPackage.Items[modId];
-                                    DrawModule(modId, modItem);
-                                    if ((i1 % 2) == 0)
+                                    var perLine = 3;
+                                    var statPos = ImGui.GetCursorPos();
+                                    for (int i1 = 0; i1 < modsResult.Stats.Length; i1++)
                                     {
-                                        ImGui.SameLine();
-                                        ImGui.Dummy(new Vector2(20, 0));
-                                        ImGui.SameLine();
+                                        PowerCore stat = modsResult.Stats[i1];
+                                        ImGui.SetCursorPos(statPos + new Vector2(i1 * 100, 0));
+                                        DrawModuleStat(stat.Id, stat.Value);
+                                    }
+
+                                    var mods = modsResult.ModuleSet.Mods;
+                                    for (int i1 = 0; i1 < mods.Length; i1++)
+                                    {
+                                        var modId = FilteredModules[mods[i1]];
+                                        var modItem = PlayerModData.ModulesPackage.Items[modId];
+                                        DrawModule(modId, modItem);
+                                        if ((i1 % 2) == 0)
+                                        {
+                                            ImGui.SameLine();
+                                            ImGui.Dummy(new Vector2(20, 0));
+                                            ImGui.SameLine();
+                                        }
                                     }
                                 }
                             }
@@ -566,14 +572,17 @@ namespace BPSR_ZDPS
                 5500101 => ImageHelper.LoadTexture(Path.Combine(ModuleImgBasePath, "item_mod_device_attack2.png")),
                 5500102 => ImageHelper.LoadTexture(Path.Combine(ModuleImgBasePath, "item_mod_device_attack3.png")),
                 5500103 => ImageHelper.LoadTexture(Path.Combine(ModuleImgBasePath, "item_mod_device_attack4.png")),
+                5500104 => ImageHelper.LoadTexture(Path.Combine(ModuleImgBasePath, "item_mod_device_attack4.png")),
 
                 5500201 => ImageHelper.LoadTexture(Path.Combine(ModuleImgBasePath, "item_mod_device_2.png")),
                 5500202 => ImageHelper.LoadTexture(Path.Combine(ModuleImgBasePath, "item_mod_device_3.png")),
                 5500203 => ImageHelper.LoadTexture(Path.Combine(ModuleImgBasePath, "item_mod_device_4.png")),
+                5500204 => ImageHelper.LoadTexture(Path.Combine(ModuleImgBasePath, "item_mod_device_4.png")),
 
                 5500301 => ImageHelper.LoadTexture(Path.Combine(ModuleImgBasePath, "item_mod_device_protect2.png")),
                 5500302 => ImageHelper.LoadTexture(Path.Combine(ModuleImgBasePath, "item_mod_device_protect3.png")),
                 5500303 => ImageHelper.LoadTexture(Path.Combine(ModuleImgBasePath, "item_mod_device_protect4.png")),
+                5500304 => ImageHelper.LoadTexture(Path.Combine(ModuleImgBasePath, "item_mod_device_protect4.png")),
 
                 _ => ImageHelper.LoadTexture(Path.Combine(ModuleImgBasePath, "missing.png"))
             };

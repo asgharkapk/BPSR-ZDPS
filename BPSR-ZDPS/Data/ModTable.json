@@ -57,6 +57,27 @@
     "InitializationId": 103,
     "IsCanLink": false
   },
+  "5500104": {
+    "Id": 5500104,
+    "Name": "EXT - Excellent Guard Module",
+    "ModType": 1,
+    "EffectLibId": [
+      311,
+      312,
+      312
+    ],
+    "IsOnly": false,
+    "SimilarId": 5500100,
+    "DecomposeAwardPackID": [
+      [
+        0,
+        99,
+        20000090
+      ]
+    ],
+    "InitializationId": 104,
+    "IsCanLink": false
+  },
   "5500201": {
     "Id": 5500201,
     "Name": "Basic Support Module",
@@ -117,6 +138,27 @@
     "InitializationId": 103,
     "IsCanLink": false
   },
+  "5500204": {
+    "Id": 5500204,
+    "Name": "EXT - Excellent Guard Module",
+    "ModType": 2,
+    "EffectLibId": [
+      321,
+      322,
+      322
+    ],
+    "IsOnly": false,
+    "SimilarId": 5500200,
+    "DecomposeAwardPackID": [
+      [
+        0,
+        99,
+        20000090
+      ]
+    ],
+    "InitializationId": 104,
+    "IsCanLink": false
+  },
   "5500301": {
     "Id": 5500301,
     "Name": "Basic Guard Module",
@@ -175,6 +217,27 @@
       ]
     ],
     "InitializationId": 103,
+    "IsCanLink": false
+  },
+  "5500304": {
+    "Id": 5500304,
+    "Name": "EXT - Excellent Guard Module",
+    "ModType": 3,
+    "EffectLibId": [
+      331,
+      332,
+      332
+    ],
+    "IsOnly": false,
+    "SimilarId": 5500300,
+    "DecomposeAwardPackID": [
+      [
+        0,
+        99,
+        20000090
+      ]
+    ],
+    "InitializationId": 104,
     "IsCanLink": false
   }
 }
