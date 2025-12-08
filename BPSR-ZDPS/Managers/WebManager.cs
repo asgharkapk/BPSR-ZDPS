@@ -48,11 +48,26 @@ namespace BPSR_ZDPS.Web
                     form.Headers.Add("X-ZDPS-ZTeamID", $"{teamId}");
 
                     string url = "";
-                    if (Settings.Instance.WebhookReportsMode == EWebhookReportsMode.DiscordDeduplication)
+                    if (Settings.Instance.WebhookReportsMode == EWebhookReportsMode.FallbackDiscordDeduplication)
                     {
                         // Construct url for going to the deduplication server
                         var discordWebHookInfo = Utils.SplitAndValidateDiscordWebhook(Settings.Instance.WebhookReportsDiscordUrl);
                         url = $"{Settings.Instance.WebhookReportsDeduplicationServerUrl}/report/discord/{discordWebHookInfo.Value.id}/{discordWebHookInfo.Value.token}";
+                    }
+                    else if (Settings.Instance.WebhookReportsMode == EWebhookReportsMode.DiscordDeduplication)
+                    {
+                        var canSubmit = await CanSubmitEncounterReport(encounter);
+                        
+                        if (canSubmit)
+                        {
+                            // Directly send to Discord
+                            url = $"{webhookUrl}";
+                        }
+                        else
+                        {
+                            // Assume we are not allowed to submit, but if there was a problem the prior call already logged it
+                            return;
+                        }
                     }
                     else if (Settings.Instance.WebhookReportsMode == EWebhookReportsMode.Discord)
                     {

@@ -85,6 +85,7 @@ namespace BPSR_ZDPS
                             switch (Settings.Instance.WebhookReportsMode)
                             {
                                 case EWebhookReportsMode.DiscordDeduplication:
+                                case EWebhookReportsMode.FallbackDiscordDeduplication:
                                 case EWebhookReportsMode.Discord:
                                     if (!string.IsNullOrEmpty(Settings.Instance.WebhookReportsDiscordUrl))
                                     {
