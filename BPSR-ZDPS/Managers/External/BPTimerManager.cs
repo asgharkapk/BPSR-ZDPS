@@ -337,7 +337,7 @@ namespace BPSR_ZDPS.Managers.External
                     {
                         DateTime timestamp = DateTime.Now;
 
-                        status.LastHp = 0;
+                        status.LastHp = 100;
                         status.UpdateTime = timestamp.ToString("yyyy-MM-dd HH:mm:ss.fffZ");
                         status.UpdateTimestamp = timestamp;
                     }

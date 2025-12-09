@@ -46,6 +46,9 @@ public class Settings
     // Settings specific to External components
     public SettingsExternal External { get; set; } = new();
 
+    // Settings specific to an individual window
+    public WindowSettings WindowSettings { get; set; } = new();
+
     public uint HotkeysEncounterReset { get; set; }
 
     public void Apply()
@@ -101,4 +104,16 @@ public enum EWebhookReportsMode
 public class SettingsExternal
 {
     public BPTimerSettings BPTimerSettings { get; set; } = new();
+}
+
+public class WindowSettings : ICloneable
+{
+    public RaidManagerCooldownsWindowSettings RaidManagerCooldowns { get; set; } = new();
+    public EntityCacheViewerWindowSettings EntityCacheViewer { get; set; } = new();
+    public SpawnTrackerWindowSettings SpawnTracker { get; set; } = new();
+
+    public object Clone()
+    {
+        return this.MemberwiseClone();
+    }
 }

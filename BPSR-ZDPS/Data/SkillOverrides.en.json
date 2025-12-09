@@ -3138,7 +3138,7 @@
     },
     "3210031":
     {
-        "Name": "Thunder Demon Passive"
+        "Name": "Arcane! Thunderfall Grasp (Passive)"
     },
     "3210051":
     {
@@ -3436,6 +3436,10 @@
     {
         "Name": "Trichroma Halo"
     },
+    "920031":
+    {
+        "Name": "Kanamia Archer"
+    },
     "998410":
     {
         "Name": "Brambleblood Armor"
@@ -3443,6 +3447,14 @@
     "998381":
     {
         "Name": "Seismic Strike"
+    },
+    "998960":
+    {
+        "Name": "Initial - Versatility"
+    },
+    "998952":
+    {
+        "Name": "Initial - Expertise"
     },
     "10240101":
     {

@@ -125,7 +125,7 @@ namespace BPSR_ZDPS
                     if (!IsTopMost)
                     {
                         Utils.SetWindowTopmost();
-                        Utils.SetWindowOpacity(Settings.Instance.WindowOpacity);
+                        Utils.SetWindowOpacity(Settings.Instance.WindowSettings.EntityCacheViewer.WindowOpacity);
                         IsTopMost = true;
                     }
                     else
@@ -171,5 +171,10 @@ namespace BPSR_ZDPS
                 ImGui.EndMenuBar();
             }
         }
+    }
+
+    public class EntityCacheViewerWindowSettings
+    {
+        public float WindowOpacity = 1.0f;
     }
 }

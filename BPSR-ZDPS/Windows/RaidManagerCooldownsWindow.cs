@@ -446,7 +446,7 @@ namespace BPSR_ZDPS.Windows
                     if (!IsTopMost)
                     {
                         Utils.SetWindowTopmost();
-                        Utils.SetWindowOpacity(Settings.Instance.WindowOpacity);
+                        Utils.SetWindowOpacity(Settings.Instance.WindowSettings.RaidManagerCooldowns.WindowOpacity);
                         IsTopMost = true;
                     }
                     else
@@ -527,6 +527,11 @@ namespace BPSR_ZDPS.Windows
                 trackedSkills.RemoveAll(x => x.SkillId == skillId);
             }
         }
+    }
+
+    public class RaidManagerCooldownsWindowSettings
+    {
+        public float WindowOpacity = 1.0f;
     }
 
     public class TrackedSkill

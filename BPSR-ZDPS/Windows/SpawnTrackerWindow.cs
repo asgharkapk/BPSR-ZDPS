@@ -104,6 +104,9 @@ namespace BPSR_ZDPS.Windows
 
                 DrawMenuBar();
 
+                float lineScale = 18.0f * Settings.Instance.WindowSettings.SpawnTracker.LineScale;
+                ImGui.PushFont(HelperMethods.Fonts["Segoe"], lineScale);
+
                 if (BPTimerManager.SpawnDataLoaded == BPTimerManager.ESpawnDataLoadStatus.NotLoaded)
                 {
                     ImGui.TextUnformatted("No data loaded from BPTimer currently.");
@@ -218,7 +221,7 @@ namespace BPSR_ZDPS.Windows
 
                             var statusDescriptors = BPTimerManager.StatusDescriptors.AsValueEnumerable().Where(x => x.MobId == mob.MobId).OrderByDescending(x => x.UpdateTimestamp).OrderBy(x =>
                             {
-                                if (x.UpdateTimestamp?.Subtract(DateTime.Now).TotalMinutes < -5)
+                                if (x.UpdateTimestamp?.Subtract(DateTime.Now).TotalMinutes < -5 && x.LastHp != 0)
                                 {
                                     // Put "expired" data at the very end
                                     return 102;
@@ -235,7 +238,7 @@ namespace BPSR_ZDPS.Windows
                             bool endedOnSameLine = false;
                             foreach (var status in statusDescriptors)
                             {
-                                float lineWidth = 50;
+                                float lineWidth = 50 * Settings.Instance.WindowSettings.SpawnTracker.LineScale;
                                 int lineItemCount = (int)MathF.Floor(groupSize.X / (lineWidth + ImGui.GetStyle().ItemSpacing.X));
 
                                 bool shouldSameLine = currentItemCount == 0 || currentItemCount % (lineItemCount) != 0;
@@ -244,7 +247,7 @@ namespace BPSR_ZDPS.Windows
                                 bool isUnknown = false;
 
                                 float pct = status.LastHp / 100.0f;
-                                if (status.UpdateTimestamp?.Subtract(DateTime.Now).TotalMinutes < -5)
+                                if (status.UpdateTimestamp?.Subtract(DateTime.Now).TotalMinutes < -5 && status.LastHp != 0)
                                 {
                                     pct = 0.0f;
                                     isUnknown = true;
@@ -284,7 +287,7 @@ namespace BPSR_ZDPS.Windows
                                     ImGui.PushStyleColor(ImGuiCol.PlotHistogram, new Vector4(28 / 255f, 180 / 255f, 84 / 255f, 0.85f));
                                 }
 
-                                ImGuiEx.TextAlignedProgressBar(pct, $"{status.ChannelNumber}", 0.5f, lineWidth, 18);
+                                ImGuiEx.TextAlignedProgressBar(pct, $"{status.ChannelNumber}", 0.5f, lineWidth, lineScale);
                                 if (shouldSameLine)
                                 {
                                     ImGui.SameLine();
@@ -336,6 +339,8 @@ namespace BPSR_ZDPS.Windows
                     ImGui.EndListBox();
                 }
 
+                ImGui.PopFont();
+
                 ImGui.End();
             }
 
@@ -359,7 +364,7 @@ namespace BPSR_ZDPS.Windows
                     if (!IsTopMost)
                     {
                         Utils.SetWindowTopmost();
-                        Utils.SetWindowOpacity(Settings.Instance.WindowOpacity);
+                        Utils.SetWindowOpacity(Settings.Instance.WindowSettings.SpawnTracker.WindowOpacity);
                         IsTopMost = true;
                     }
                     else
@@ -405,5 +410,11 @@ namespace BPSR_ZDPS.Windows
                 ImGui.EndMenuBar();
             }
         }
+    }
+
+    public class SpawnTrackerWindowSettings
+    {
+        public float WindowOpacity = 1.0f;
+        public float LineScale = 1.0f;
     }
 }

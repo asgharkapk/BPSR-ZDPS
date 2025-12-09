@@ -63,6 +63,8 @@ namespace BPSR_ZDPS.Windows
         static bool externalBPTimerIncludeCharacterId;
         static bool externalBPTimerFieldBossHpReportsEnabled;
 
+        static WindowSettings windowSettings;
+
         static bool IsDiscordWebhookUrlValid = true;
 
         static int RunOnceDelayed = 0;
@@ -423,7 +425,7 @@ namespace BPSR_ZDPS.Windows
                         ImGui.EndDisabled();
                         ImGui.Unindent();
 
-                        ImGui.AlignTextToFramePadding();
+                        /*ImGui.AlignTextToFramePadding();
                         ImGui.Text("Pinned Window Opacity: ");
                         ImGui.SetNextItemWidth(-1);
                         ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, ImGui.GetColorU32(ImGuiCol.FrameBgHovered, 0.55f));
@@ -437,9 +439,9 @@ namespace BPSR_ZDPS.Windows
                         ImGui.BeginDisabled(true);
                         ImGui.TextWrapped("How transparent a pinned window is.");
                         ImGui.EndDisabled();
-                        ImGui.Unindent();
+                        ImGui.Unindent();*/
 
-                        ImGui.AlignTextToFramePadding();
+                        /*ImGui.AlignTextToFramePadding();
                         ImGui.Text("Meter Bar Scale: ");
                         ImGui.SetNextItemWidth(-1);
                         ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, ImGui.GetColorU32(ImGuiCol.FrameBgHovered, 0.55f));
@@ -453,7 +455,135 @@ namespace BPSR_ZDPS.Windows
                         ImGui.BeginDisabled(true);
                         ImGui.TextWrapped("Scaling for how large the bars in the meter windows should be. 100%% is the default scale.");
                         ImGui.EndDisabled();
-                        ImGui.Unindent();
+                        ImGui.Unindent();*/
+
+                        if (ImGui.CollapsingHeader("Pinned (Top Most) Window Opacities"))
+                        {
+                            ImGui.Indent();
+
+                            ImGui.AlignTextToFramePadding();
+                            ImGui.Text("Main Window: ");
+                            ImGui.SetNextItemWidth(-1);
+                            ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, ImGui.GetColorU32(ImGuiCol.FrameBgHovered, 0.55f));
+                            ImGui.PushStyleColor(ImGuiCol.FrameBgActive, ImGui.GetColorU32(ImGuiCol.FrameBgActive, 0.55f));
+                            if (ImGui.SliderFloat("##MainWindowOpacity", ref windowOpacity, 0.05f, 1.0f, $"{(int)(windowOpacity * 100)}%%"))
+                            {
+                                windowOpacity = MathF.Round(windowOpacity, 2);
+                            }
+                            ImGui.PopStyleColor(2);
+                            ImGui.Indent();
+                            ImGui.BeginDisabled(true);
+                            ImGui.TextWrapped("How transparent the Main Window is while pinned.");
+                            ImGui.EndDisabled();
+                            ImGui.Unindent();
+
+                            ImGui.AlignTextToFramePadding();
+                            ImGui.Text("Cooldown Priority Tracker Window: ");
+                            ImGui.SetNextItemWidth(-1);
+                            ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, ImGui.GetColorU32(ImGuiCol.FrameBgHovered, 0.55f));
+                            ImGui.PushStyleColor(ImGuiCol.FrameBgActive, ImGui.GetColorU32(ImGuiCol.FrameBgActive, 0.55f));
+                            if (ImGui.SliderFloat("##CooldownPriorityTrackerWindowOpacity", ref windowSettings.RaidManagerCooldowns.WindowOpacity, 0.05f, 1.0f, $"{(int)(windowSettings.RaidManagerCooldowns.WindowOpacity * 100)}%%"))
+                            {
+                                windowSettings.RaidManagerCooldowns.WindowOpacity = MathF.Round(windowSettings.RaidManagerCooldowns.WindowOpacity, 2);
+                            }
+                            ImGui.PopStyleColor(2);
+                            ImGui.Indent();
+                            ImGui.BeginDisabled(true);
+                            ImGui.TextWrapped("How transparent the Cooldown Priority Tracker Window is while pinned.");
+                            ImGui.EndDisabled();
+                            ImGui.Unindent();
+
+                            ImGui.AlignTextToFramePadding();
+                            ImGui.Text("Entity Cache Viewer Window: ");
+                            ImGui.SetNextItemWidth(-1);
+                            ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, ImGui.GetColorU32(ImGuiCol.FrameBgHovered, 0.55f));
+                            ImGui.PushStyleColor(ImGuiCol.FrameBgActive, ImGui.GetColorU32(ImGuiCol.FrameBgActive, 0.55f));
+                            if (ImGui.SliderFloat("##EntityCacheViewerWindowOpacity", ref windowSettings.EntityCacheViewer.WindowOpacity, 0.05f, 1.0f, $"{(int)(windowSettings.EntityCacheViewer.WindowOpacity * 100)}%%"))
+                            {
+                                windowSettings.EntityCacheViewer.WindowOpacity = MathF.Round(windowSettings.EntityCacheViewer.WindowOpacity, 2);
+                            }
+                            ImGui.PopStyleColor(2);
+                            ImGui.Indent();
+                            ImGui.BeginDisabled(true);
+                            ImGui.TextWrapped("How transparent the Entity Cache Viewer Window is while pinned.");
+                            ImGui.EndDisabled();
+                            ImGui.Unindent();
+
+                            ImGui.SeparatorText("Integrations");
+
+                            if (ImGui.CollapsingHeader("BPTimer##BPTimerOpacitySection", ImGuiTreeNodeFlags.DefaultOpen))
+                            {
+                                ImGui.Indent();
+
+                                ImGui.AlignTextToFramePadding();
+                                ImGui.Text("Spawn Tracker Window: ");
+                                ImGui.SetNextItemWidth(-1);
+                                ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, ImGui.GetColorU32(ImGuiCol.FrameBgHovered, 0.55f));
+                                ImGui.PushStyleColor(ImGuiCol.FrameBgActive, ImGui.GetColorU32(ImGuiCol.FrameBgActive, 0.55f));
+                                if (ImGui.SliderFloat("##BPTimerSpawnTrackerWindowOpacity", ref windowSettings.SpawnTracker.WindowOpacity, 0.05f, 1.0f, $"{(int)(windowSettings.SpawnTracker.WindowOpacity * 100)}%%"))
+                                {
+                                    windowSettings.SpawnTracker.WindowOpacity = MathF.Round(windowSettings.SpawnTracker.WindowOpacity, 2);
+                                }
+                                ImGui.PopStyleColor(2);
+                                ImGui.Indent();
+                                ImGui.BeginDisabled(true);
+                                ImGui.TextWrapped("How transparent the Spawn Tracker Window is while pinned.");
+                                ImGui.EndDisabled();
+                                ImGui.Unindent();
+
+                                ImGui.Unindent();
+                            }
+
+                            ImGui.Unindent();
+                        }
+
+                        if (ImGui.CollapsingHeader("Window Scales"))
+                        {
+                            ImGui.Indent();
+
+                            ImGui.AlignTextToFramePadding();
+                            ImGui.Text("Meter Bar Scale: ");
+                            ImGui.SetNextItemWidth(-1);
+                            ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, ImGui.GetColorU32(ImGuiCol.FrameBgHovered, 0.55f));
+                            ImGui.PushStyleColor(ImGuiCol.FrameBgActive, ImGui.GetColorU32(ImGuiCol.FrameBgActive, 0.55f));
+                            if (ImGui.SliderFloat("##MeterBarScale", ref meterBarScale, 0.80f, 2.0f, $"{(int)(meterBarScale * 100)}%%"))
+                            {
+                                meterBarScale = MathF.Round(meterBarScale, 2);
+                            }
+                            ImGui.PopStyleColor(2);
+                            ImGui.Indent();
+                            ImGui.BeginDisabled(true);
+                            ImGui.TextWrapped("Scaling for how large the bars in the meter windows should be. 100%% is the default scale.");
+                            ImGui.EndDisabled();
+                            ImGui.Unindent();
+
+                            ImGui.SeparatorText("Integrations");
+
+                            if (ImGui.CollapsingHeader("BPTimer##BPTimerScaleSection", ImGuiTreeNodeFlags.DefaultOpen))
+                            {
+                                ImGui.Indent();
+
+                                ImGui.AlignTextToFramePadding();
+                                ImGui.Text("Spawn Tracker Line Scale: ");
+                                ImGui.SetNextItemWidth(-1);
+                                ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, ImGui.GetColorU32(ImGuiCol.FrameBgHovered, 0.55f));
+                                ImGui.PushStyleColor(ImGuiCol.FrameBgActive, ImGui.GetColorU32(ImGuiCol.FrameBgActive, 0.55f));
+                                if (ImGui.SliderFloat("##BPTimerSpawnTrackerLineScale", ref windowSettings.SpawnTracker.LineScale, 0.80f, 2.0f, $"{(int)(windowSettings.SpawnTracker.LineScale * 100)}%%"))
+                                {
+                                    windowSettings.SpawnTracker.LineScale = MathF.Round(windowSettings.SpawnTracker.LineScale, 2);
+                                }
+                                ImGui.PopStyleColor(2);
+                                ImGui.Indent();
+                                ImGui.BeginDisabled(true);
+                                ImGui.TextWrapped("Scaling for how large the Line (channel) bars in the Spawn Tracker window should be. 100%% is the default scale.");
+                                ImGui.EndDisabled();
+                                ImGui.Unindent();
+
+                                ImGui.Unindent();
+                            }
+
+                            ImGui.Unindent();
+                        }
 
                         ImGui.EndChild();
                         ImGui.EndTabItem();
@@ -972,6 +1102,8 @@ namespace BPSR_ZDPS.Windows
             webhookReportsDiscordUrl = Settings.Instance.WebhookReportsDiscordUrl;
             webhookReportsCustomUrl = Settings.Instance.WebhookReportsCustomUrl;
 
+            windowSettings = (WindowSettings)Settings.Instance.WindowSettings.Clone();
+
             logToFile = Settings.Instance.LogToFile;
 
             // External
@@ -1029,6 +1161,8 @@ namespace BPSR_ZDPS.Windows
             Settings.Instance.WebhookReportsDeduplicationServerHost = webhookReportsDeduplicationServerUrl;
             Settings.Instance.WebhookReportsDiscordUrl = webhookReportsDiscordUrl;
             Settings.Instance.WebhookReportsCustomUrl = webhookReportsCustomUrl;
+
+            Settings.Instance.WindowSettings = (WindowSettings)windowSettings.Clone();
 
             Settings.Instance.LogToFile = logToFile;
 
