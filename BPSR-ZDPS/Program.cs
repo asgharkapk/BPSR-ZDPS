@@ -43,6 +43,7 @@ namespace BPSR_ZDPS
                 }
 
                 logBuilder = logBuilder.WriteTo.File("ZDPS_log.txt");
+                AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             }
 
             Log.Logger = logBuilder.CreateLogger();
@@ -221,7 +222,11 @@ namespace BPSR_ZDPS
             // Save the current encounter to the database before exiting
             if (EncounterManager.Current != null)
             {
-                DB.InsertEncounter(EncounterManager.Current);
+                EncounterManager.StopEncounter(true);
+                if (EncounterManager.Current.HasStatsBeenRecorded(true))
+                {
+                    DB.InsertEncounter(EncounterManager.Current);
+                }
             }
 
             Settings.Save();
@@ -229,6 +234,21 @@ namespace BPSR_ZDPS
 
             HotKeyManager.UnregisterAllHotKeys();
             //HotKeyManager.UnregisterHookProc();
+
+            System.Diagnostics.Stopwatch writingTimeout = new();
+            writingTimeout.Start();
+            while (EntityCache.Instance.IsWritingFile)
+            {
+                // Spin until writing has finished
+                System.Threading.Thread.Sleep(10);
+
+                if (writingTimeout.IsRunning && writingTimeout.Elapsed.TotalSeconds >= 6)
+                {
+                    Log.Warning("EntityCache writing has taken too long during exit process! Forcing exit (this may corrupt the cache).");
+                    break;
+                }
+            }
+            writingTimeout.Stop();
 
             ImGuiImplD3D11.Shutdown();
             ImGuiImplD3D11.SetCurrentContext(null);
@@ -298,6 +318,12 @@ namespace BPSR_ZDPS
             }
 
             Log.Information("ZDPS has cleanly exited.");
+        }
+
+        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            var ex = e.ExceptionObject as Exception;
+            Log.Error($"Unhandled Exception:\n{ex?.Message}\nStack Trace:\n{ex?.StackTrace}");
         }
 
         static unsafe void Window_Resized_Callback(Hexa.NET.GLFW.GLFWwindow* window, int width, int height)

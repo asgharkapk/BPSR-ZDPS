@@ -25,7 +25,7 @@ public class Settings
     public bool UseDatabaseForEncounterHistory { get; set; } = true;
     public int DatabaseRetentionPolicyDays { get; set; } = 0;
     public bool LimitEncounterBuffTrackingWithoutDatabase { get; set; } = false;
-    public bool LogToFile { get; set; } = false;
+    public bool LogToFile { get; set; } = true;
     public EGameCapturePreference GameCapturePreference { get; set; } = EGameCapturePreference.Auto;
     public bool PlayNotificationSoundOnMatchmake { get; set; } = false;
     public string MatchmakeNotificationSoundPath { get; set; } = "";

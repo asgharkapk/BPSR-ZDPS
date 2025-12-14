@@ -24,7 +24,6 @@ namespace BPSR_ZDPS.Windows
         static Vector2 MenuBarSize;
         static bool HasInitBindings = false;
 
-        // TODO: Move into Settings
         static int DisplayCountLimit = 5;
 
         static bool HasInitFilterList = false;

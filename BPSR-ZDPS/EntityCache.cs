@@ -16,7 +16,8 @@ namespace BPSR_ZDPS
 
         public EntityCacheFile Cache = new();
         public string FilePath = Path.Combine(Utils.DATA_DIR_NAME, "EntityCache.json");
-        public TimeSpan BufferDelay = TimeSpan.FromSeconds(5);
+        public TimeSpan BufferDelay = TimeSpan.FromSeconds(3);
+        public bool IsWritingFile = false;
         private Task? SaveTask;
         private readonly System.Threading.Lock syncLock = new();
 
@@ -79,8 +80,25 @@ namespace BPSR_ZDPS
                 {
                     using (StreamReader file = new StreamReader(fs, Encoding.UTF8))
                     {
+                        EntityCacheFile? erroredState = null;
+
                         JsonSerializer serializer = new();
+                        serializer.Error += delegate (object? sender, Newtonsoft.Json.Serialization.ErrorEventArgs args)
+                        {
+                            // Bad JSON typically happens from crashing while writing the file, this will let us save the data up to the error hit
+                            if (Equals(args.ErrorContext.Member, "Lines"))
+                            {
+                                Serilog.Log.Error($"Ignoring error deserializing EntityCache:\n{args.ErrorContext.Error.Message}");
+                                erroredState = (EntityCacheFile)args.CurrentObject;
+                            }
+                            args.ErrorContext.Handled = true;
+                        };
                         Cache = (EntityCacheFile)serializer.Deserialize(file, typeof(EntityCacheFile));
+
+                        if (erroredState != null)
+                        {
+                            Cache = erroredState;
+                        }
                     }
                 }
             }
@@ -97,19 +115,29 @@ namespace BPSR_ZDPS
                 //var file = File.OpenWrite(FilePath);
                 //ProtoBuf.Serializer.Serialize<EntityCacheFile>(file, Cache);
                 //file.Close();
-                using (FileStream fs = new FileStream(FilePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read))
+                IsWritingFile = true;
+                try
                 {
-                    using (StreamWriter file = new StreamWriter(fs))
+                    using (FileStream fs = new FileStream(FilePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read))
                     {
-                        JsonSerializer serializer = new();
-                        serializer.Serialize(file, Cache);
+                        using (StreamWriter file = new StreamWriter(fs))
+                        {
+                            JsonSerializer serializer = new();
+                            serializer.Serialize(file, Cache);
+                        }
                     }
                 }
+                catch (Exception ex)
+                {
+                    Serilog.Log.Error($"Error writing EntityCache file:\n{ex.Message}\nStack Trace:\n{ex.StackTrace}");
+                }
+                IsWritingFile = false;
             }
             else
             {
                 if (SaveTask == null)
                 {
+                    IsWritingFile = true;
                     SaveTask = Task.Factory.StartNew(async () =>
                     {
                         await Task.Delay(BufferDelay);

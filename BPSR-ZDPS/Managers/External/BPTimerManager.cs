@@ -20,7 +20,7 @@ namespace BPSR_ZDPS.Managers.External
         static BPTimerHpReport? LastSentRequest = null;
 
         static int[] SupportedEntityReportList =
-            [ 10007, 10009, 10010, 10018, 10029, 10032, 10056, 10059, 10069, 10077, 10081, 10084, 10085, 10086, 10900, 10901, 10902, 10903, 10904];
+            [ 10007, 10009, 10010, 10018, 10029, 10032, 10056, 10059, 10069, 10077, 10081, 10084, 10085, 10086, 10900, 10901, 10902, 10903, 10904 ];
 
         static bool IsEncounterBound = false;
 
@@ -272,7 +272,7 @@ namespace BPSR_ZDPS.Managers.External
                     }
                     catch (Exception ex)
                     {
-                        Log.Error($"BPTimerOpenRealtimeStream SSE Error: {ex.Message}");
+                        Log.Error($"BPTimerOpenRealtimeStream SSE Error:\n{ex.Message}");
                         await Task.Delay(500);
                     }
                 }
@@ -329,19 +329,26 @@ namespace BPSR_ZDPS.Managers.External
 
         public static void HandleMobResetEvent(List<string> resets)
         {
-            foreach (var mobId in resets)
+            try
             {
-                foreach (var status in StatusDescriptors)
+                foreach (var mobId in resets)
                 {
-                    if (status.MobId == mobId)
+                    foreach (var status in StatusDescriptors)
                     {
-                        DateTime timestamp = DateTime.Now;
+                        if (status.MobId == mobId)
+                        {
+                            DateTime timestamp = DateTime.Now;
 
-                        status.LastHp = 100;
-                        status.UpdateTime = timestamp.ToString("yyyy-MM-dd HH:mm:ss.fffZ");
-                        status.UpdateTimestamp = timestamp;
+                            status.LastHp = 100;
+                            status.UpdateTime = timestamp.ToString("yyyy-MM-dd HH:mm:ss.fffZ");
+                            status.UpdateTimestamp = timestamp;
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error during BPTimer's HandleMobResetEvent.\n{ex.Message}\nStack Trace:{ex.StackTrace}");
             }
         }
     }

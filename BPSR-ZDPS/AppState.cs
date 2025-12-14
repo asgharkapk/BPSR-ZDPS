@@ -1,5 +1,6 @@
 ﻿using BPSR_ZDPS.DataTypes;
 using Newtonsoft.Json;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,7 +36,7 @@ namespace BPSR_ZDPS
             {
                 var appStrings = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, string>>>(File.ReadAllText(appStringsFile));
                 AppStrings.Strings = appStrings;
-                System.Diagnostics.Debug.WriteLine("Loaded AppStrings.json");
+                Log.Information("Loaded AppStrings.json");
             }
 
             string monsterTableFile = Path.Combine(Utils.DATA_DIR_NAME, "MonsterTable.json");
@@ -43,7 +44,7 @@ namespace BPSR_ZDPS
             {
                 var monsters = JsonConvert.DeserializeObject<Dictionary<string, Monster>>(File.ReadAllText(monsterTableFile));
                 HelperMethods.DataTables.Monsters.Data = monsters;
-                System.Diagnostics.Debug.WriteLine("Loaded MonsterTable.json");
+                Log.Information("Loaded MonsterTable.json");
             }
 
             string skillTableFile = Path.Combine(Utils.DATA_DIR_NAME, "SkillTable.json");
@@ -51,7 +52,7 @@ namespace BPSR_ZDPS
             {
                 var skills = JsonConvert.DeserializeObject<Dictionary<string, Skill>>(File.ReadAllText(skillTableFile));
                 HelperMethods.DataTables.Skills.Data = skills;
-                System.Diagnostics.Debug.WriteLine("Loaded SkillTable.json");
+                Log.Information("Loaded SkillTable.json");
             }
 
             string modTableFile = Path.Combine(Utils.DATA_DIR_NAME, "ModTable.json");
@@ -59,15 +60,15 @@ namespace BPSR_ZDPS
             {
                 var modules = JsonConvert.DeserializeObject<Dictionary<int, ModuleData>>(File.ReadAllText(modTableFile));
                 HelperMethods.DataTables.Modules.Data = modules;
-                System.Diagnostics.Debug.WriteLine("Loaded ModTable.json");
+                Log.Information("Loaded ModTable.json");
             }
 
-            string modEffectsFile = Path.Combine(Utils.DATA_DIR_NAME, "ModEffectTable.json");
-            if (File.Exists(modEffectsFile))
+            string modEffectTableFile = Path.Combine(Utils.DATA_DIR_NAME, "ModEffectTable.json");
+            if (File.Exists(modEffectTableFile))
             {
-                var modEffects = JsonConvert.DeserializeObject<Dictionary<int, EffectData>>(File.ReadAllText(modEffectsFile));
+                var modEffects = JsonConvert.DeserializeObject<Dictionary<int, EffectData>>(File.ReadAllText(modEffectTableFile));
                 HelperMethods.DataTables.ModEffects.Data = modEffects;
-                System.Diagnostics.Debug.WriteLine("Loaded ModEffects.json");
+                Log.Information("Loaded ModEffectTable.json");
             }
 
             // TODO: Every language can have its own 'Overrides' file
@@ -101,7 +102,7 @@ namespace BPSR_ZDPS
                         HelperMethods.DataTables.Skills.Data.Add(item.Key, skill);
                     }
                 }
-                System.Diagnostics.Debug.WriteLine("Loaded SkillOverrides.en.json");
+                Log.Information("Loaded SkillOverrides.en.json");
             }
             // TODO: Map Icon from SkillTable to SkillId lookups and trim path to final part after a '/'
 
@@ -111,7 +112,7 @@ namespace BPSR_ZDPS
             {
                 var targets = JsonConvert.DeserializeObject<Dictionary<string, Target>>(File.ReadAllText(targetTableFile));
                 HelperMethods.DataTables.Targets.Data = targets;
-                System.Diagnostics.Debug.WriteLine("Loaded TargetTable.json");
+                Log.Information("Loaded TargetTable.json");
             }
 
             string sceneTableFile = Path.Combine(Utils.DATA_DIR_NAME, "SceneTable.json");
@@ -119,7 +120,7 @@ namespace BPSR_ZDPS
             {
                 var scenes = JsonConvert.DeserializeObject<Dictionary<string, Scene>>(File.ReadAllText(sceneTableFile));
                 HelperMethods.DataTables.Scenes.Data = scenes;
-                System.Diagnostics.Debug.WriteLine("Loaded SceneTable.json");
+                Log.Information("Loaded SceneTable.json");
             }
 
             string buffTableFile = Path.Combine(Utils.DATA_DIR_NAME, "BuffTable.json");
@@ -127,7 +128,7 @@ namespace BPSR_ZDPS
             {
                 var buffs = JsonConvert.DeserializeObject<Dictionary<string, Buff>>(File.ReadAllText(buffTableFile));
                 HelperMethods.DataTables.Buffs.Data = buffs;
-                System.Diagnostics.Debug.WriteLine("Loaded BuffTable.json");
+                Log.Information("Loaded BuffTable.json");
             }
 
             // TODO: Every language can have its own 'Overrides' file
@@ -166,7 +167,7 @@ namespace BPSR_ZDPS
                         HelperMethods.DataTables.Buffs.Data.Add(item.Key, buff);
                     }
                 }
-                System.Diagnostics.Debug.WriteLine("Loaded BuffOverrides.en.json");
+                Log.Information("Loaded BuffOverrides.en.json");
             }
 
             // Load up our offline entity cache if it exists to help with initial data resolving when we're not given all the required details

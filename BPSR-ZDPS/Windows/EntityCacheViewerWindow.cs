@@ -25,7 +25,7 @@ namespace BPSR_ZDPS
         static Vector2 MenuBarSize;
         static bool HasInitBindings = false;
 
-        static KeyValuePair<long, EntityCacheLine>[]? EntityFilterMatches = [];
+        static KeyValuePair<long, EntityCacheLine>[] EntityFilterMatches = [];
         static string EntityNameFilter = "";
 
         public static void Open()
