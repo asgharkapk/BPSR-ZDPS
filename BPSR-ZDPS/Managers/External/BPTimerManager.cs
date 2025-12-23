@@ -309,6 +309,45 @@ namespace BPSR_ZDPS.Managers.External
             });
         }
 
+        public static void FetchSupportedMobList()
+        {
+            // This is a bit similar to FetchAllMobs but has the sole purpose of just updating SupportedEntityReportList
+            // This will be called either when the related Setting is enabled or on application launch if it's already enabled
+
+            var task = Task.Factory.StartNew(async () =>
+            {
+                var mobs = await WebManager.BPTimerFetchAllMobs($"{HOST}/api/collections/mobs/records?page=1&perPage=100&sort=monster_id&expand=map&skipTotal=1");
+
+                if (mobs == null)
+                {
+                    Log.Error("BPTimerManager FetchSupportedMobList Error getting data for mobs");
+                    return;
+                }
+
+                try
+                {
+                    var mobs_items = ((Newtonsoft.Json.Linq.JObject)mobs)["items"].ToObject<List<MobsResponse>>();
+
+                    var responseIdList = new List<int>();
+                    foreach (var mob in mobs_items)
+                    {
+                        if (!responseIdList.Contains((int)mob.MonsterId))
+                        {
+                            responseIdList.Add((int)mob.MonsterId);
+                        }
+                    }
+                    if (responseIdList.Count > 0)
+                    {
+                        SupportedEntityReportList = responseIdList.ToArray();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error("BPTimerManager FetchSupportedMobList Error parsing data");
+                }
+            });
+        }
+
         public static CancellationTokenSource StartRealtime()
         {
             var cancellationTokenSource = new CancellationTokenSource();

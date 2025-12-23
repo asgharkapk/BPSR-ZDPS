@@ -12,6 +12,8 @@ namespace BPSR_ZDPS.DataTypes.External
     {
         [JsonProperty("id")]
         public string Id { get; set; }
+        [JsonProperty("location")]
+        public bool Location { get; set; }
         [JsonProperty("map")]
         public string Map { get; set; }
         [JsonProperty("monster_id")]

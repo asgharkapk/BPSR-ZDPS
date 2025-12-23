@@ -1211,6 +1211,12 @@ namespace BPSR_ZDPS.Windows
 
             // Write out the new settings to file now that they've been applied
             Settings.Save();
+
+            if (externalBPTimerEnabled && externalBPTimerFieldBossHpReportsEnabled)
+            {
+                // Attempt to update our supported mob list with data from the BPTimer server
+                Managers.External.BPTimerManager.FetchSupportedMobList();
+            }
         }
 
         static void ShowRestartRequiredNotice(bool showCondition, string settingName)

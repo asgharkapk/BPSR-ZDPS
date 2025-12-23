@@ -143,6 +143,15 @@ namespace BPSR_ZDPS.Windows
                 Settings.Instance.ApplyHotKeys(this);
 
                 Utils.SetCurrentWindowIcon();
+
+                if (Settings.Instance.External.BPTimerSettings.ExternalBPTimerEnabled)
+                {
+                    if (Settings.Instance.External.BPTimerSettings.ExternalBPTimerFieldBossHpReportsEnabled)
+                    {
+                        // Attempt to update our supported mob list with data from the BPTimer server
+                        Managers.External.BPTimerManager.FetchSupportedMobList();
+                    }
+                }
             }
 
             ImGuiTableFlags table_flags = ImGuiTableFlags.SizingStretchSame;
