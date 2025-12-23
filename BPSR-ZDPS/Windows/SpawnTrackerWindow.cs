@@ -248,6 +248,8 @@ namespace BPSR_ZDPS.Windows
                     ImGui.Separator();
                 }
 
+                DateTime currentDateTimeUtc = DateTime.UtcNow;
+
                 if (ImGui.BeginListBox("##StatusListBox", new Vector2(-1, -1)))
                 {
                     if (BPTimerManager.SpawnDataLoaded == BPTimerManager.ESpawnDataLoadStatus.Complete)
@@ -270,8 +272,20 @@ namespace BPSR_ZDPS.Windows
                             {
                                 name = mob.MobName;
                             }
-                            ImGui.Selectable($"{name} [{mob.MobMapName}]##MobLabel_{mob.MobId}", ImGuiSelectableFlags.SpanAllColumns);
                             
+                            if (mob.MobType.Equals("Boss", StringComparison.OrdinalIgnoreCase))
+                            {
+                                var difference = TimeUntilOccurrence(currentDateTimeUtc, mob.MobRespawnTime);
+
+                                ImGui.Selectable($"{name} [{mob.MobMapName}] (Respawn: {difference.diff.Minutes:00}m {difference.diff.Seconds:00}s)##MobLabel_{mob.MobId}", ImGuiSelectableFlags.SpanAllColumns);
+
+                                ImGui.ProgressBar(difference.pct, new Vector2(-1, ImGui.GetFontSize() * 0.25f), $"##OccurrenceProgressBar_{mob.MobId}");
+                            }
+                            else
+                            {
+                                ImGui.Selectable($"{name} [{mob.MobMapName}]##MobLabel_{mob.MobId}", ImGuiSelectableFlags.SpanAllColumns);
+                            }
+
                             ImGui.EndGroup();
                             var groupSize = ImGui.GetItemRectSize();
 
@@ -414,6 +428,27 @@ namespace BPSR_ZDPS.Windows
             }
 
             ImGui.PopID();
+        }
+
+        static (TimeSpan nextOccurrence, float pct, TimeSpan diff) TimeUntilOccurrence(DateTime currentDateTime, int intervalMinutes)
+        {
+            DateTime nextOccurrence;
+            DateTime lastOccurrence;
+
+            lastOccurrence = new DateTime(currentDateTime.Year, currentDateTime.Month, currentDateTime.Day, currentDateTime.Hour, intervalMinutes, 0);
+            if (currentDateTime < lastOccurrence)
+            {
+                lastOccurrence = lastOccurrence.AddHours(-1); 
+            }
+            nextOccurrence = lastOccurrence.AddHours(1);
+
+            TimeSpan cycle = TimeSpan.FromHours(1);
+            TimeSpan elapsed = currentDateTime - lastOccurrence;
+            TimeSpan difference = nextOccurrence - currentDateTime;
+
+            float pct = MathF.Round(1 - ((float)elapsed.TotalSeconds / (float)cycle.TotalSeconds), 4);
+
+            return (nextOccurrence - currentDateTime, pct, difference);
         }
 
         static float MenuBarButtonWidth = 0.0f;
