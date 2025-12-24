@@ -330,9 +330,10 @@ namespace BPSR_ZDPS
             var encounters = DB.LoadEncounterSummaries();
 
             Log.Information("Running DB Migration 1");
+            var tx = DbConn.BeginTransaction();
             foreach (var encounter in encounters)
             {
-                var entityBlob = DbConn.QuerySingleOrDefault<EntityBlobTable>(DBSchema.Entities.SelectByEncounterId, new { EncounterId = encounter.EncounterId });
+                var entityBlob = DbConn.QuerySingleOrDefault<EntityBlobTable>(DBSchema.Entities.SelectByEncounterId, new { EncounterId = encounter.EncounterId }, tx);
                 using (var memStream = new MemoryStream(entityBlob.Data))
                 {
                     using (var decompStream = new ZstdSharp.DecompressionStream(memStream))
@@ -340,8 +341,9 @@ namespace BPSR_ZDPS
                         using (var streamReader = new StreamReader(decompStream))
                         {
                             var txt = streamReader.ReadToEnd();
-                            txt = txt.Replace("BPSR-DeepsLib", "BPSR-ZDPSLib")
-                                .Replace("BPSR_ZDPS.CombatStats2, BPSR-ZDPS", "BPSR_ZDPS.CombatStats, BPSR-ZDPS");
+                            var sb = new StringBuilder(txt);
+                            sb.Replace("BPSR-DeepsLib", "BPSR-ZDPSLib");
+                            sb.Replace("BPSR_ZDPS.CombatStats2, BPSR-ZDPS", "BPSR_ZDPS.CombatStats, BPSR-ZDPS");
 
                             using (var memoryStream = new MemoryStream())
                             {
@@ -349,28 +351,33 @@ namespace BPSR_ZDPS
                                 {
                                     using (var streamWriter = new StreamWriter(compStream, Encoding.UTF8, 1024, true))
                                     {
-                                        streamWriter.Write(txt);
+                                        streamWriter.Write(sb.ToString());
                                         streamWriter.Flush();
-
-                                        var blob = new EntityBlobTable();
-                                        blob.EncounterId = encounter.EncounterId;
-                                        blob.Data = memoryStream.ToArray();
-                                        var result = DbConn.Execute("UPDATE Entities SET Data = @Data WHERE EncounterId = @EncounterId", blob);
                                     }
+                                    compStream.Flush();
                                 }
+                                memoryStream.Flush();
+
+                                var blob = new EntityBlobTable();
+                                blob.EncounterId = encounter.EncounterId;
+                                blob.Data = memoryStream.ToArray();
+                                var result = DbConn.Execute("UPDATE Entities SET Data = @Data WHERE EncounterId = @EncounterId", blob, tx);
                             }
                         }
                     }
                 }
             }
 
-            DbConn.Execute(DBSchema.DbData.Delete);
-            DbConn.Execute("INSERT INTO DbData (Version) SELECT (1.1)");
+            DbConn.Execute(DBSchema.DbData.Delete, tx);
+            DbConn.Execute("INSERT INTO DbData (Version) SELECT (1.1)", tx);
+            tx.Commit();
+
             DbConn.Execute("VACUUM");
 
             Log.Information("DB Migration 1 done");
         }
     }
+}
 
     public class DBCleanUpResults
     {
