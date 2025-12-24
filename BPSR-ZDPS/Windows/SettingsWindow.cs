@@ -1086,6 +1086,16 @@ namespace BPSR_ZDPS.Windows
                         ImGui.EndDisabled();
                         ImGui.Unindent();
 
+                        if (ImGui.Button("Open GitHub Project Page"))
+                        {
+                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo {FileName = "https://github.com/Blue-Protocol-Source/BPSR-ZDPS", UseShellExecute = true });
+                        }
+                        ImGui.Indent();
+                        ImGui.BeginDisabled(true);
+                        ImGui.TextWrapped("Open a web page to the GitHub Project located at\nhttps://github.com/Blue-Protocol-Source/BPSR-ZDPS");
+                        ImGui.EndDisabled();
+                        ImGui.Unindent();
+
                         ImGui.EndChild();
                         ImGui.EndTabItem();
                     }
