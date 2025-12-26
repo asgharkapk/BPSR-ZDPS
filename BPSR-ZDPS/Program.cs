@@ -111,7 +111,10 @@ namespace BPSR_ZDPS
             }
 
             io.ConfigFlags |= ImGuiConfigFlags.NavEnableKeyboard;     // Enable Keyboard Controls
-            io.ConfigFlags |= ImGuiConfigFlags.NavEnableGamepad;      // Enable Gamepad Controls
+            if (Settings.Instance.AllowGamepadNavigationInputInZDPS)
+            {
+                io.ConfigFlags |= ImGuiConfigFlags.NavEnableGamepad;  // Enable Gamepad Controls
+            }
             io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;         // Enable Docking
             io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
             io.ConfigViewportsNoAutoMerge = true; // If this is false, putting an ImGui window on top of an GLFW window will dock into it even if it's not shown
@@ -182,7 +185,7 @@ namespace BPSR_ZDPS
                 ImGui.NewFrame();
 
                 RenderWindowList();
-                //ImGui.ShowDemoWindow();
+                ImGui.ShowDemoWindow();
                 //ImPlot.ShowDemoWindow();
 
                 ImGui.Render();

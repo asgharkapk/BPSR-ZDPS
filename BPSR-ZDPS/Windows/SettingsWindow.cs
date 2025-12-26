@@ -28,6 +28,7 @@ namespace BPSR_ZDPS.Windows
         static bool displayTruePerSecondValuesInMeters;
         static float windowOpacity;
         static float meterBarScale;
+        static bool allowGamepadNavigationInputInZDPS;
         static bool useDatabaseForEncounterHistory;
         static int databaseRetentionPolicyDays;
         static bool limitEncounterBuffTrackingWithoutDatabase;
@@ -505,6 +506,16 @@ namespace BPSR_ZDPS.Windows
                         ImGui.Indent();
                         ImGui.BeginDisabled(true);
                         ImGui.TextWrapped("When enabled, only players who have dealt damage will show in the DPS meter.");
+                        ImGui.EndDisabled();
+                        ImGui.Unindent();
+
+                        ImGui.AlignTextToFramePadding();
+                        ImGui.Text("Allow Gamepad Navigation Input In ZDPS: ");
+                        ImGui.SameLine();
+                        ImGui.Checkbox("##AllowGamepadNavigationInputInZDPS", ref allowGamepadNavigationInputInZDPS);
+                        ImGui.Indent();
+                        ImGui.BeginDisabled(true);
+                        ImGui.TextWrapped("When enabled, gamepad input can navigate and control the ZDPS windows.\nNote: Gamepad input may control the windows even without them specifically in focus.");
                         ImGui.EndDisabled();
                         ImGui.Unindent();
 
@@ -1242,6 +1253,7 @@ namespace BPSR_ZDPS.Windows
             displayTruePerSecondValuesInMeters = Settings.Instance.DisplayTruePerSecondValuesInMeters;
             windowOpacity = Settings.Instance.WindowOpacity;
             meterBarScale = Settings.Instance.MeterBarScale;
+            allowGamepadNavigationInputInZDPS = Settings.Instance.AllowGamepadNavigationInputInZDPS;
 
             useDatabaseForEncounterHistory = Settings.Instance.UseDatabaseForEncounterHistory;
             databaseRetentionPolicyDays = Settings.Instance.DatabaseRetentionPolicyDays;
@@ -1283,6 +1295,7 @@ namespace BPSR_ZDPS.Windows
 
         private static void Save(MainWindow mainWindow)
         {
+            var io = ImGui.GetIO();
             if (SelectedNetworkDeviceIdx != PreviousSelectedNetworkDeviceIdx || GameCapturePreference != Settings.Instance.GameCapturePreference)
             {
                 PreviousSelectedNetworkDeviceIdx = SelectedNetworkDeviceIdx;
@@ -1297,6 +1310,14 @@ namespace BPSR_ZDPS.Windows
 
                 MessageManager.InitializeCapturing();
             }
+            if (allowGamepadNavigationInputInZDPS)
+            {
+                io.ConfigFlags |= ImGuiConfigFlags.NavEnableGamepad;
+            }
+            else
+            {
+                io.ConfigFlags &= ~ImGuiConfigFlags.NavEnableGamepad;
+            }
 
             Settings.Instance.NormalizeMeterContributions = normalizeMeterContributions;
             Settings.Instance.UseShortWidthNumberFormatting = useShortWidthNumberFormatting;
@@ -1309,6 +1330,7 @@ namespace BPSR_ZDPS.Windows
             Settings.Instance.DisplayTruePerSecondValuesInMeters = displayTruePerSecondValuesInMeters;
             Settings.Instance.WindowOpacity = windowOpacity;
             Settings.Instance.MeterBarScale = meterBarScale;
+            Settings.Instance.AllowGamepadNavigationInputInZDPS = allowGamepadNavigationInputInZDPS;
 
             Settings.Instance.UseDatabaseForEncounterHistory = useDatabaseForEncounterHistory;
             Settings.Instance.DatabaseRetentionPolicyDays = databaseRetentionPolicyDays;

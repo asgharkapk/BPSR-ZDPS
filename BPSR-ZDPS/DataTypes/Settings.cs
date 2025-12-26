@@ -29,6 +29,7 @@ public class Settings
     public bool LogToFile { get; set; } = true;
     public EGameCapturePreference GameCapturePreference { get; set; } = EGameCapturePreference.Auto;
     public string GameCaptureCustomExeName { get; set; } = "";
+    public bool AllowGamepadNavigationInputInZDPS { get; set; } = false;
     public bool PlayNotificationSoundOnMatchmake { get; set; } = false;
     public string MatchmakeNotificationSoundPath { get; set; } = "";
     public bool LoopNotificationSoundOnMatchmake { get; set; } = false;
@@ -40,11 +41,13 @@ public class Settings
     public bool SaveEncounterReportToFile { get; set; } = false;
     public int ReportFileRetentionPolicyDays { get; set; } = 0;
     public int MinimumPlayerCountToCreateReport { get; set; } = 0;
+
     public bool WebhookReportsEnabled { get; set; } = false;
     public EWebhookReportsMode WebhookReportsMode { get; set; } = EWebhookReportsMode.Discord;
     public string WebhookReportsDeduplicationServerHost { get; set; } = "https://zdps-webfunc.vercel.app";
     public string WebhookReportsDiscordUrl { get; set; } = "";
     public string WebhookReportsCustomUrl { get; set; } = "";
+
     public bool CheckForZDPSUpdatesOnStartup { get; set; } = false;
     public string LatestZDPSVersionCheckURL { get; set; } = "https://raw.githubusercontent.com/Blue-Protocol-Source/BPSR-ZDPS-Metadata/master/LatestVersion.txt";
     public string ZDPSWebsiteURL { get; set; } = "https://github.com/Blue-Protocol-Source/BPSR-ZDPS";
