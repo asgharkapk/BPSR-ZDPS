@@ -241,18 +241,24 @@ namespace BPSR_ZDPS.Windows
                                                         remainingTime = trackedSkill.GetTimeRemaining();
                                                     }
                                                 }
-                                                
                                             }
                                         }
                                     }
 
                                     float textAlignment = 0.50f;
                                     var cursorPos = ImGui.GetCursorPos();
-                                    string displayText = $"{trackedSkill.SkillName}{tierLevel} ({remainingTime.ToString(@"hh\:mm\:ss\.ff")})";
+
+                                    string remainingTimeFormat = remainingTime.ToString(@"hh\:mm\:ss\.ff");
+                                    if (Settings.Instance.WindowSettings.RaidManagerCooldowns.DisplayCooldownRemainingAsSeconds)
+                                    {
+                                        remainingTimeFormat = Math.Round(remainingTime.TotalSeconds, 2).ToString("0.00");
+                                    }
+
+                                    string displayText = $"{trackedSkill.SkillName}{tierLevel} ({remainingTimeFormat})";
                                     var textSize = ImGui.CalcTextSize(displayText);
                                     float progressBarWidth = ImGui.GetContentRegionAvail().X - indentOffset;
                                     float labelX = cursorPos.X + (progressBarWidth - textSize.X) * textAlignment;
-                                    float remainingPct = (float)Math.Round(remainingTime.TotalMilliseconds / trackedSkill.SkillCooldownDefined, 4);
+                                    float remainingPct = (float)Math.Round(remainingTime.TotalSeconds / trackedSkill.CooldownReduced ?? trackedSkill.SkillCooldownDefined, 4);
                                     ImGui.PushStyleColor(ImGuiCol.PlotHistogram, Colors.DarkRed);
                                     ImGui.ProgressBar(remainingPct, new Vector2(progressBarWidth, 18), "");
                                     ImGui.PopStyleColor();
@@ -290,7 +296,14 @@ namespace BPSR_ZDPS.Windows
                     delayMoveKeySelection = -1;
                     delayMoveIdxTarget = -1;
                     delayMoveDirection = -1;
-
+                    if (ImGui.BeginPopupContextWindow("##CooldownTrackerListContextMenu"))
+                    {
+                        if (ImGui.MenuItem("Display Cooldown Remaining As Seconds", Settings.Instance.WindowSettings.RaidManagerCooldowns.DisplayCooldownRemainingAsSeconds))
+                        {
+                            Settings.Instance.WindowSettings.RaidManagerCooldowns.DisplayCooldownRemainingAsSeconds = !Settings.Instance.WindowSettings.RaidManagerCooldowns.DisplayCooldownRemainingAsSeconds;
+                        }
+                        ImGui.EndPopup();
+                    }
                     ImGui.EndListBox();
                 }
                 else
@@ -300,7 +313,7 @@ namespace BPSR_ZDPS.Windows
                 //ImGui.EndChild();
                 ImGui.PopStyleColor();
                 ImGui.PopStyleVar(2);
-
+                
                 if (!CollapseToContentOnly)
                 {
 
@@ -619,7 +632,7 @@ namespace BPSR_ZDPS.Windows
 
     public class RaidManagerCooldownsWindowSettings : WindowSettingsBase
     {
-
+        public bool DisplayCooldownRemainingAsSeconds = false;
     }
 
     public class TrackedSkill
@@ -628,6 +641,7 @@ namespace BPSR_ZDPS.Windows
         public string SkillName { get; set; }
         public int SkillTier { get; set; } = 0;
         public float SkillCooldownDefined { get; set; }
+        public float? CooldownReduced { get; set; } = null;
         public DateTime ActivationTime { get; private set; }
         public DateTime? ExpectedEndTime { get; private set; } = null;
         public DateTime? TierCheckTime { get; set; } = null;
@@ -635,13 +649,14 @@ namespace BPSR_ZDPS.Windows
         public void SetActivationTime(DateTime activationTime)
         {
             ActivationTime = activationTime;
-            ExpectedEndTime = ActivationTime.AddMilliseconds(SkillCooldownDefined);
+            ExpectedEndTime = ActivationTime.AddSeconds(CooldownReduced ?? SkillCooldownDefined);
         }
 
         public void UpdateEndTimeFromTierLevel(int tierLevel)
         {
             // Imagines with 60 second cooldowns already do not get any reductions
-            if (SkillCooldownDefined >= 60.0f)
+            float newCooldown = SkillCooldownDefined;
+            if (SkillCooldownDefined > 60.0f)
             {
                 if (tierLevel >= 0 && tierLevel <= 2)
                 {
@@ -650,14 +665,15 @@ namespace BPSR_ZDPS.Windows
                 else if (tierLevel > 2 && tierLevel <= 4)
                 {
                     // Tiers 3 and 4 have the first level of reduction
-                    SkillCooldownDefined = MathF.Ceiling(SkillCooldownDefined * 0.8333f);
+                    newCooldown = MathF.Ceiling(SkillCooldownDefined * 0.8333f);
                 }
                 else if (tierLevel > 4 && tierLevel <= 6)
                 {
                     // Tiers 5 (and maybe 6 if it exists) have the second level of reduction
-                    SkillCooldownDefined = MathF.Ceiling(SkillCooldownDefined * 0.6666f);
+                    newCooldown = MathF.Ceiling(SkillCooldownDefined * 0.6666f);
                 }
-                ExpectedEndTime = ActivationTime.AddMilliseconds(SkillCooldownDefined);
+                CooldownReduced = newCooldown;
+                ExpectedEndTime = ActivationTime.AddSeconds(newCooldown);
             }
         }
 
