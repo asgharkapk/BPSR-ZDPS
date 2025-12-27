@@ -114,12 +114,15 @@ When using the Cooldown Priority Tracker there are a few steps to follow first:
 3. Click on the Green Plus to add the Entity, or the Red Minus to remove them.
 4. Open the `Add Tracked Skill` menu.
 5. Type in the Name _or_ Skill Id of the Skill you want to track being cast.
-6. Type in the Cooldown time, in milliseconds, for the selected skill.
-   - It is suggested to use the base highest cooldown time for skills rather than the lowest to ensure it accurately reflects for players with lower tier Battle Imagines.
+6. Verify the Cooldown Time displayed is not `0.0`.
+   - If the Cooldown Time is `0.0` then you likely have selected the wrong skill. ZDPS will automatically calculate tier-based cooldown reductions so only the base value is needed (which is auto-filled for you when selecting a skill).
 7. Click Add Skill To Tracker.
 
 > [!NOTE]
 > When adding Skills, the names used are the same as displayed in-game. If multiple results for the same name appear, you likely want to use the lower Skill Id version. In the screenshot above, Skill Id `3920` is the actual Skill Cast for the Airona Battle Imagine. For Tina the Skill Id would be `3921`.
+
+> [!NOTE]
+> Tracked skills go into a "pool" of skills. You do not need to add a unique instance of a skill per entity (and the UI will prevent you from trying to make that mistake).
 
 In the actual Entity list at the top, you can freely change the order of Entities, giving them your priority cast order. Such as which player should cast Airona first in the event of a death.
 
@@ -262,6 +265,9 @@ ZDPS is capable of checking online for new versions and alerting you if one is f
 
 #### User Interface
 
+`Show Class Icons In Meters`
+- By default class icons will be shown next to players in the meters. This setting allows you to hide them if you wish.
+
 `Color Class Icons By Role Type`
 - Class icons in the Meters can be either colored by their role (Tank/Healer/DPS) or white like the rest of the text.
 
@@ -271,6 +277,15 @@ ZDPS is capable of checking online for new versions and alerting you if one is f
 `Only Show Damage Contributors In Meters`
 - By default, ZDPS will show all nearby entities in the Meters UI even if they never perform a single attack. If this is enabled, the entities will need to perform an attack to show up.
   - Even if an entity does not appear in the meter because it did not attack, they are still being tracked in the Encounter data.
+
+`Show Ability Score In Meters`
+- A player's ability score is shown after their name (and profession) in the meters. This setting will allow you to hide that.
+
+`Show Sub Profession Name In Meters`
+- By default, the profession for a player will be shown after their name. Once they use a skill, their sub profession will be detected and shown in place of that. By turning off this setting you can completely hide the (sub) profession names from being displayed in the meters.
+
+`Allow Gamepad Navigation Input In ZDPS`
+- By default only Mouse and Keyboard input is supported in ZDPS. This setting allows you to turn on Gamepad input if you feel the need for it. This can however cause issues with Gamepad input being read by ZDPS even if it's not in focus so use this setting carefully.
 
 `Pinned (Top Most) Window Opacities`
 - In here you can set how transparent you want a pinned window to be.
@@ -316,6 +331,9 @@ Reports are able to be sent automatically to Webhooks of your choice. This is mo
   - `Fallback Discord Deduplication` (Not Recommended) is another setting which is no longer supported by the current ZDPS web server. When this is used, your entire Encounter Report is sent off to the Deduplication Server and if it's allowed to be sent to Discord, the server itself would send the message rather than your own PC.
   - `Custom URL` is how you can send your Encounter Report to any arbitrary server you want and let it perform whatever actions it is setup for. This is likely not an option most users will want to use as the data sent is currently the same as the Discord messages and not something intended for third-party services to process _at this time_.
     - An option to send raw data consumable by a third-party service is planned to be added later.
+
+> [!NOTE]
+> Discord Webhooks need to be setup in the desired server by a user with high enough permissions. A single Webhook URL can then be provided to all users who want to automatically post their Encounter Reports to that channel. Discord's official documentation on creating Webhooks can be found [here](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks).
 
 ##### BPTimer
 
