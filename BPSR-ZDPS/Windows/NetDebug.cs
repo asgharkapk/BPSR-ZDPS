@@ -168,6 +168,11 @@ public static class NetDebug
                 }
             }
 
+            /*
+            var activeGameProcess = BPSR_DeepsLib.Utils.GetCachedProcessEntry();
+            ImGui.TextUnformatted($"Active ProcessID: {activeGameProcess?.ProcessId ?? -1}, ProcessName: {activeGameProcess?.ProcessName ?? "N/A"}");
+            */
+
             ImGui.End();
         }
         

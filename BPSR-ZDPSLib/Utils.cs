@@ -70,6 +70,11 @@ public class Utils
         return processesDict;
     }
 
+    public static ProcessCacheEntry? GetCachedProcessEntry()
+    {
+        return ProcessCache?.Values.FirstOrDefault();
+    }
+
     /*
     public static void PrintExeTCPConnections(string filename = "BPSR")
     {
