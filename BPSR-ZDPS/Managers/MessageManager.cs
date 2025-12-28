@@ -1287,32 +1287,35 @@ namespace BPSR_ZDPS
                 
                 // This Encounter-wide status check can help ensure real wipes are found, but does not overturn a local player state match a wipe pattern
                 // The follow-up Boss HP check _should hopefully_ protect against the vast majority of incorrect player state pattern matches
-                var characterList = EncounterManager.Current.Entities.AsValueEnumerable().Where(x => x.Value.EntityType == EEntityType.EntChar);
-                bool areAllCharactersDead = true;
-                foreach (var character in characterList)
+                if (EncounterManager.Current.HasStatsBeenRecorded())
                 {
-                    var charState = character.Value.GetAttrKV("AttrState");
-                    if (charState != null)
+                    var characterList = EncounterManager.Current.Entities.AsValueEnumerable().Where(x => x.Value.EntityType == EEntityType.EntChar);
+                    bool areAllCharactersDead = true;
+                    foreach (var character in characterList)
                     {
-                        if ((EActorState)charState != EActorState.ActorStateDead && character.Value.Hp > 0)
+                        var charState = character.Value.GetAttrKV("AttrState");
+                        if (charState != null)
+                        {
+                            if ((EActorState)charState != EActorState.ActorStateDead && character.Value.Hp > 0)
+                            {
+                                areAllCharactersDead = false;
+                            }
+                        }
+                        else if (character.Value.Hp > 0 || character.Value.MaxHp == 0)
                         {
                             areAllCharactersDead = false;
                         }
                     }
-                    else if (character.Value.Hp > 0 || character.Value.MaxHp == 0)
+                    if (areAllCharactersDead && !isStateWipePattern)
                     {
-                        areAllCharactersDead = false;
+                        Log.Debug($"All characters were reported as actively dead in current Encounter. Overriding isStateWipePattern to true.");
+                        isStateWipePattern = true;
                     }
-                }
-                if (areAllCharactersDead && !isStateWipePattern)
-                {
-                    Log.Debug($"All characters were reported as actively dead in current Encounter. Overriding isStateWipePattern to true.");
-                    isStateWipePattern = true;
-                }
-                if (Settings.Instance.AllowWipeRecalculationOverwriting && !areAllCharactersDead && isStateWipePattern)
-                {
-                    Log.Debug($"Not all characters were reported as actively dead in current Encounter. Overriding isStateWipePattern to false.");
-                    isStateWipePattern = false;
+                    if (Settings.Instance.AllowWipeRecalculationOverwriting && !areAllCharactersDead && isStateWipePattern)
+                    {
+                        Log.Debug($"Not all characters were reported as actively dead in current Encounter. Overriding isStateWipePattern to false.");
+                        isStateWipePattern = false;
+                    }
                 }
 
                 //System.Diagnostics.Debug.WriteLine($"useNoTeleportWipePattern == {useNoTeleportWipePattern} && isStateWipePattern == {isStateWipePattern}");
