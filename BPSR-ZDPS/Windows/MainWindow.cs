@@ -178,18 +178,18 @@ namespace BPSR_ZDPS.Windows
                 {
                     Web.WebManager.CheckForZDPSUpdates();
                 }
+
+                if (!Settings.Instance.HasPromptedEnableUpdateChecks && !HasPromptedOneTimeEnableUpdateChecks && !Settings.Instance.CheckForZDPSUpdatesOnStartup)
+                {
+                    HasPromptedOneTimeEnableUpdateChecks = true;
+                    UpdateCheckPromptWindow.Open();
+                }
             }
 
             if (AppState.IsUpdateAvailable && !HasPromptedUpdateWindow)
             {
                 HasPromptedUpdateWindow = true;
                 UpdateAvailableWindow.Open();
-            }
-
-            if (!Settings.Instance.HasPromptedEnableUpdateChecks && !HasPromptedOneTimeEnableUpdateChecks && !Settings.Instance.CheckForZDPSUpdatesOnStartup)
-            {
-                HasPromptedOneTimeEnableUpdateChecks = true;
-                UpdateCheckPromptWindow.Open();
             }
 
             ImGuiTableFlags table_flags = ImGuiTableFlags.SizingStretchSame;
