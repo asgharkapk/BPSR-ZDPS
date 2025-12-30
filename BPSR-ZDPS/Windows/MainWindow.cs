@@ -60,6 +60,7 @@ namespace BPSR_ZDPS.Windows
             SpawnTrackerWindow.Draw(this);
             ModuleSolver.Draw();
             EntityCacheViewerWindow.Draw(this);
+            DetachableMeterWindow.Draw(this);
         }
 
         static bool p_open = true;
@@ -252,6 +253,12 @@ namespace BPSR_ZDPS.Windows
                     if (ImGui.Button($"{Meters[i].Name}##TabBtn_{i}", new Vector2(-1, 0)))
                     {
                         SelectedTabIndex = i;
+                    }
+
+                    // Right-click to detach meter as popup
+                    if (ImGui.IsItemHovered() && ImGui.IsMouseReleased(ImGuiMouseButton.Right))
+                    {
+                        DetachableMeterWindow.ToggleDetachMeter(Meters[i], this);
                     }
 
                     if (isSelected)
