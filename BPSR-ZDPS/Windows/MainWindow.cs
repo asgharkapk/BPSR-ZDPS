@@ -243,7 +243,7 @@ namespace BPSR_ZDPS.Windows
 
                     bool isSelected = (SelectedTabIndex == i);
 
-                    ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 5);
+                    ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
 
                     if (isSelected)
                     {

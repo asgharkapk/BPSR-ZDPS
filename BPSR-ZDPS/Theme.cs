@@ -94,7 +94,7 @@ namespace BPSR_ZDPS
 
             var style = ImGui.GetStyle();
 
-            style.PopupRounding = 3;
+            style.PopupRounding = 0;
             style.WindowPadding = new Vector2(4, 4);
             style.FramePadding = new Vector2(6, 4);
             style.ItemSpacing = new Vector2(6, 2);
@@ -103,12 +103,12 @@ namespace BPSR_ZDPS
             style.ChildBorderSize = 1;
             style.PopupBorderSize = 1;
             style.FrameBorderSize = 0;
-            style.WindowRounding = 3;
-            style.ChildRounding = 3;
-            style.FrameRounding = 3;
-            style.ScrollbarRounding = 2;
-            style.GrabRounding = 3;
-            style.TabRounding = 3;
+            style.WindowRounding = 0;
+            style.ChildRounding = 0;
+            style.FrameRounding = 0;
+            style.ScrollbarRounding = 0;
+            style.GrabRounding = 0;
+            style.TabRounding = 0;
 
             // This makes it easier to grab the window borders for resizing
             style.WindowBorderHoverPadding = 8;
@@ -186,7 +186,7 @@ namespace BPSR_ZDPS
 
             var style = ImGui.GetStyle();
 
-            style.PopupRounding = 3;
+            style.PopupRounding = 0;
             style.WindowPadding = new Vector2(4, 4);
             style.FramePadding = new Vector2(6, 4);
             style.ItemSpacing = new Vector2(6, 2);
@@ -195,12 +195,12 @@ namespace BPSR_ZDPS
             style.ChildBorderSize = 1;
             style.PopupBorderSize = 1;
             style.FrameBorderSize = 0;
-            style.WindowRounding = 3;
-            style.ChildRounding = 3;
-            style.FrameRounding = 3;
-            style.ScrollbarRounding = 2;
-            style.GrabRounding = 3;
-            style.TabRounding = 3;
+            style.WindowRounding = 0;
+            style.ChildRounding = 0;
+            style.FrameRounding = 0;
+            style.ScrollbarRounding = 0;
+            style.GrabRounding = 0;
+            style.TabRounding = 0;
 
             // This makes it easier to grab the window borders for resizing
             style.WindowBorderHoverPadding = 8;
@@ -277,7 +277,7 @@ namespace BPSR_ZDPS
 
             var style = ImGui.GetStyle();
 
-            style.PopupRounding = 3;
+            style.PopupRounding = 0;
             style.WindowPadding = new Vector2(4, 4);
             style.FramePadding = new Vector2(6, 4);
             style.ItemSpacing = new Vector2(6, 2);
@@ -286,12 +286,12 @@ namespace BPSR_ZDPS
             style.ChildBorderSize = 1;
             style.PopupBorderSize = 1;
             style.FrameBorderSize = 0;
-            style.WindowRounding = 3;
-            style.ChildRounding = 3;
-            style.FrameRounding = 3;
-            style.ScrollbarRounding = 2;
-            style.GrabRounding = 3;
-            style.TabRounding = 3;
+            style.WindowRounding = 0;
+            style.ChildRounding = 0;
+            style.FrameRounding = 0;
+            style.ScrollbarRounding = 0;
+            style.GrabRounding = 0;
+            style.TabRounding = 0;
 
             // This makes it easier to grab the window borders for resizing
             style.WindowBorderHoverPadding = 8;
