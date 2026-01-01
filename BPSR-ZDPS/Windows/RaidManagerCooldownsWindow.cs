@@ -355,9 +355,9 @@ namespace BPSR_ZDPS.Windows
                         // Require at least 3 characters to perform our search to maintain performance against large lists
                         if (ImGui.BeginListBox("##FilteredEntitiesListBox", new Vector2(ImGui.GetContentRegionAvail().X, 120)))
                         {
-                            if (EntityNameFilter.Length > 2)
+                            if (EntityFilterMatches != null && (EntityFilterMatches.Length < 100 || EntityNameFilter.Length > 2))
                             {
-                                if (EntityFilterMatches != null && EntityFilterMatches.Any())
+                                if (EntityFilterMatches.Any())
                                 {
                                     long matchIdx = 0;
                                     foreach (var match in EntityFilterMatches)

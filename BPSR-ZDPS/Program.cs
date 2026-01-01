@@ -59,6 +59,7 @@ namespace BPSR_ZDPS
             GLFW.WindowHint(GLFW.GLFW_FOCUSED, 1);    // Make window focused on start
             GLFW.WindowHint(GLFW.GLFW_RESIZABLE, 1);  // Make window resizable
             GLFW.WindowHint(GLFW.GLFW_VISIBLE, 0); // Start window hidden so it can be nicely positioned first
+            GLFW.WindowHint(GLFW.GLFW_TRANSPARENT_FRAMEBUFFER, 1);
 
             // TODO: Load these values from a settings file
             int windowWidth = 800;
@@ -193,7 +194,7 @@ namespace BPSR_ZDPS
 
                 manager.SetTarget();
 
-                manager.Clear(new(0, 0, 0, 1));
+                manager.Clear(new(0, 0, 0, 0.0f));
 
                 ImGuiImplD3D11.RenderDrawData(ImGui.GetDrawData());
 

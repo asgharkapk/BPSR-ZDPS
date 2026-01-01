@@ -32,6 +32,12 @@ namespace BPSR_ZDPS
             ImageHelper.LoadTexture(Path.Combine(images, "Professions", "Slim", "Profession_11.png"), "Profession_11_Slim");
             ImageHelper.LoadTexture(Path.Combine(images, "Professions", "Slim", "Profession_12.png"), "Profession_12_Slim");
             ImageHelper.LoadTexture(Path.Combine(images, "Professions", "Slim", "Profession_13.png"), "Profession_13_Slim");
+
+            ImageHelper.LoadTexture(Path.Combine(images, "Numbers", "shieldbehit-.png"), "BasicNumber-");
+            for (int i = 0; i <= 9; i++)
+            {
+                ImageHelper.LoadTexture(Path.Combine(images, "Numbers", $"shieldbehit{i}.png"), $"BasicNumber{i}");
+            }
         }
 
         public static Hexa.NET.ImGui.ImTextureRef? LoadImage(string key)

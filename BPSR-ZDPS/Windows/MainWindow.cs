@@ -60,6 +60,8 @@ namespace BPSR_ZDPS.Windows
             SpawnTrackerWindow.Draw(this);
             ModuleSolver.Draw();
             EntityCacheViewerWindow.Draw(this);
+            RaidManagerRaidWarningWindow.Draw(this);
+            RaidManagerCountdownWindow.Draw(this);
         }
 
         static bool p_open = true;
@@ -385,6 +387,16 @@ namespace BPSR_ZDPS.Windows
                         if (ImGui.MenuItem("Cooldown Priority Tracker"))
                         {
                             RaidManagerCooldownsWindow.Open();
+                        }
+
+                        if (ImGui.MenuItem("Raid Warnings"))
+                        {
+                            RaidManagerRaidWarningWindow.Open();
+                        }
+
+                        if (ImGui.MenuItem("Countdowns"))
+                        {
+                            RaidManagerCountdownWindow.Open();
                         }
 
                         ImGui.EndMenu();

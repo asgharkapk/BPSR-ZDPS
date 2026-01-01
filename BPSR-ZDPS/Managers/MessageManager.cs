@@ -519,7 +519,9 @@ namespace BPSR_ZDPS
                 switch ((EAttrType)attr.Id)
                 {
                     case EAttrType.AttrName:
-                        EncounterManager.Current.SetName(uuid, reader.ReadString());
+                        string name = reader.ReadString();
+                        EncounterManager.Current.SetName(uuid, name);
+                        EncounterManager.Current.SetAttrKV(uuid, "AttrName", name);
                         break;
                     case EAttrType.AttrSkillId:
                         {
@@ -530,10 +532,14 @@ namespace BPSR_ZDPS
                             break;
                         }
                     case EAttrType.AttrProfessionId:
-                        EncounterManager.Current.SetProfessionId(uuid, reader.ReadInt32());
+                        int professionId = reader.ReadInt32();
+                        EncounterManager.Current.SetProfessionId(uuid, professionId);
+                        EncounterManager.Current.SetAttrKV(uuid, "AttrProfessionId", professionId);
                         break;
                     case EAttrType.AttrFightPoint:
-                        EncounterManager.Current.SetAbilityScore(uuid, reader.ReadInt32());
+                        int fightPoint = reader.ReadInt32();
+                        EncounterManager.Current.SetAbilityScore(uuid, fightPoint);
+                        EncounterManager.Current.SetAttrKV(uuid, "AttrFightPoint", fightPoint);
                         break;
                     case EAttrType.AttrLevel:
                         EncounterManager.Current.SetAttrKV(uuid, "AttrLevel", reader.ReadInt32());

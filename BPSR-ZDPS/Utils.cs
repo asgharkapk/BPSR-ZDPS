@@ -346,6 +346,12 @@ namespace BPSR_ZDPS
             User32.SetWindowPos(hWnd, User32.HWND_NOTOPMOST, 0, 0, 0, 0, User32.SWP_NOMOVE | User32.SWP_NOSIZE);
         }
 
+        public static void SetWindowLong(int nIndex, IntPtr dwNewLong, ImGuiViewportPtr? viewport = null)
+        {
+            viewport = viewport ?? ImGui.GetWindowViewport();
+            User32.SetWindowLong((IntPtr)viewport.Value.PlatformHandleRaw, nIndex, dwNewLong);
+        }
+
         public static unsafe void SetCurrentWindowIcon()
         {
             Assembly assembly = Assembly.GetExecutingAssembly();

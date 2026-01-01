@@ -34,7 +34,7 @@ namespace BPSR_ZDPS
 
         public static bool IsUpdateAvailable { get; set; } = false;
 
-        public static bool IsChatEnabled = false;
+        public static bool IsChatEnabled = true;
 
         public static void LoadDataTables()
         {

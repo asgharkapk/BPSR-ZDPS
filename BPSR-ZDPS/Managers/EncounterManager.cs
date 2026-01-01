@@ -159,6 +159,11 @@ namespace BPSR_ZDPS
                             var newBoss = Current.GetOrCreateEntity(priorBoss.Key);
                             newBoss.SetHpValuesNoUpdate(priorBoss.Value.Hp, priorBoss.Value.MaxHp);
                             newBoss.Attributes = priorBoss.Value.Attributes.ToDictionary();
+                            var attrId = newBoss.GetAttrKV("AttrId");
+                            if (attrId != null)
+                            {
+                                Current.SetAttrKV(priorBoss.Key, "AttrId", (int)attrId);
+                            }
                         }
                     }
                 }
