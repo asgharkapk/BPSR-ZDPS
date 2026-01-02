@@ -49,8 +49,8 @@ namespace BPSR_ZDPS.Windows
         private bool _singleMeterModeWasTopMost = false;
         private bool _singleMeterModeAutoReentryEnabled = false;
         private int _singleMeterModeRunOnceDelayed = 0;
-        private bool _isInteractingWithWindow = false; // Track drag/resize for position/size persistence
-        private bool _justSwitchedMode = false; // Track when we just switched modes (for one-time position/size restore)
+        private bool _isInteractingWithWindow = false;
+        private bool _justSwitchedMode = false;
 
         public void Draw()
         {
@@ -99,10 +99,6 @@ namespace BPSR_ZDPS.Windows
 
             // Window size constraints
             ImGui.SetNextWindowSizeConstraints(new Vector2(375, 150), new Vector2(ImGui.GETFLTMAX()));
-
-            // Window position/size - conditional based on mode
-            // Only restore saved position/size when we just switched modes, not every frame
-            // This allows user to resize the window without it snapping back
 
             if (_isSingleMeterMode)
             {
@@ -175,15 +171,15 @@ namespace BPSR_ZDPS.Windows
             WindowPosition = ImGui.GetWindowPos();
             WindowSize = ImGui.GetWindowSize();
 
-            // Reset the just-switched flag after first frame (so position/size restoration only happens once)
+            // Reset the just-switched flag after first frame
             if (_justSwitchedMode)
                 _justSwitchedMode = false;
 
-            // Track window interaction for position/size saving (per mode)
+            // Track window interaction for position/size saving
             if (ImGui.IsWindowHovered() && ImGui.IsMouseDragging(ImGuiMouseButton.Left, 0))
             {
                 _isInteractingWithWindow = true;
-                // Save position/size during interaction for the current mode
+                // Save position/size during interaction
                 if (_isSingleMeterMode)
                 {
                     Settings.Instance.WindowSettings.MainWindow.SingleMeterModeWindowPosition = WindowPosition;
@@ -762,7 +758,6 @@ namespace BPSR_ZDPS.Windows
             Settings.Instance.WindowSettings.MainWindow.SingleMeterModeAutoReentryEnabled = enableAutoReentry;
             Settings.Save();
 
-            // Set flag to restore position/size on next frame
             _justSwitchedMode = true;
 
             // Always enable topmost when entering single-meter mode
@@ -796,7 +791,6 @@ namespace BPSR_ZDPS.Windows
             Settings.Instance.WindowSettings.MainWindow.SingleMeterModeMeterName = "";
             Settings.Save();
 
-            // Set flag to restore position/size on next frame
             _justSwitchedMode = true;
 
             // Restore topmost state to what it was before entering single-meter mode

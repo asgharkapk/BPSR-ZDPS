@@ -144,35 +144,35 @@ namespace BPSR_ZDPS.DataTypes
             }
             else if (professionName == AppStrings.GetLocalized("Profession_Stormblade") || professionName == AppStrings.GetLocalized("SubProfession_Iaido") || professionName == AppStrings.GetLocalized("SubProfession_Moonstrike"))
             {
-                return Colors.FromColor(ColorTranslator.FromHtml("#3D3566"));  // Was #70629c - darker for better contrast
+                return Colors.FromColor(ColorTranslator.FromHtml("#3D3566"));
             }
             else if (professionName == AppStrings.GetLocalized("Profession_FrostMage") || professionName == AppStrings.GetLocalized("SubProfession_Frostbeam") || professionName == AppStrings.GetLocalized("SubProfession_Icicle"))
             {
-                return Colors.FromColor(ColorTranslator.FromHtml("#434366"));  // Was #79779c - darker for better contrast
+                return Colors.FromColor(ColorTranslator.FromHtml("#434366"));
             }
             else if (professionName == AppStrings.GetLocalized("Profession_WindKnight") || professionName == AppStrings.GetLocalized("SubProfession_Skyward") || professionName == AppStrings.GetLocalized("SubProfession_Vanguard"))
             {
-                return Colors.FromColor(ColorTranslator.FromHtml("#435657"));  // Was #799a9c - darker for better contrast
+                return Colors.FromColor(ColorTranslator.FromHtml("#435657"));
             }
             else if (professionName == AppStrings.GetLocalized("Profession_VerdantOracle") || professionName == AppStrings.GetLocalized("SubProfession_Lifebind") || professionName == AppStrings.GetLocalized("SubProfession_Smite"))
             {
-                return Colors.FromColor(ColorTranslator.FromHtml("#37563E"));  // Was #639c70 - darker for better contrast
+                return Colors.FromColor(ColorTranslator.FromHtml("#37563E"));
             }
             else if (professionName == AppStrings.GetLocalized("Profession_HeavyGuardian") || professionName == AppStrings.GetLocalized("SubProfession_Earthfort") || professionName == AppStrings.GetLocalized("SubProfession_Block"))
             {
-                return Colors.FromColor(ColorTranslator.FromHtml("#2E4231"));  // Was #537758 - darker for better contrast
+                return Colors.FromColor(ColorTranslator.FromHtml("#2E4231"));
             }
             else if (professionName == AppStrings.GetLocalized("Profession_Marksman") || professionName == AppStrings.GetLocalized("SubProfession_Falconry") || professionName == AppStrings.GetLocalized("SubProfession_Wildpack"))
             {
-                return Colors.FromColor(ColorTranslator.FromHtml("#4E4C27"));  // Was #8e8b47 - darker for better contrast
+                return Colors.FromColor(ColorTranslator.FromHtml("#4E4C27"));
             }
             else if (professionName == AppStrings.GetLocalized("Profession_ShieldKnight") || professionName == AppStrings.GetLocalized("SubProfession_Recovery") || professionName == AppStrings.GetLocalized("SubProfession_Shield"))
             {
-                return Colors.FromColor(ColorTranslator.FromHtml("#555541"));  // Was #9c9b75 - darker for better contrast
+                return Colors.FromColor(ColorTranslator.FromHtml("#555541"));
             }
             else if (professionName == AppStrings.GetLocalized("Profession_BeatPerformer") || professionName == AppStrings.GetLocalized("SubProfession_Concerto") || professionName == AppStrings.GetLocalized("SubProfession_Dissonance"))
             {
-                return Colors.FromColor(ColorTranslator.FromHtml("#552E2E"));  // Was #9c5353 - darker for better contrast
+                return Colors.FromColor(ColorTranslator.FromHtml("#552E2E"));
             }
 
             // TODO: Add SubProfessions as their own entries to allow further coloring
