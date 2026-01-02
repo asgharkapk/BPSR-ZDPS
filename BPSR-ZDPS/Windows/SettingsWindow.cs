@@ -650,22 +650,6 @@ namespace BPSR_ZDPS.Windows
                             ImGui.EndDisabled();
                             ImGui.Unindent();
 
-                            ImGui.AlignTextToFramePadding();
-                            ImGui.Text("Detachable Meter Window: ");
-                            ImGui.SetNextItemWidth(-1);
-                            ImGui.PushStyleColor(ImGuiCol.FrameBgHovered, ImGui.GetColorU32(ImGuiCol.FrameBgHovered, 0.55f));
-                            ImGui.PushStyleColor(ImGuiCol.FrameBgActive, ImGui.GetColorU32(ImGuiCol.FrameBgActive, 0.55f));
-                            if (ImGui.SliderInt("##DetachableMeterWindowOpacity", ref windowSettings.DetachableMeter.Opacity, 20, 100, $"{windowSettings.DetachableMeter.Opacity}%%", ImGuiSliderFlags.ClampOnInput))
-                            {
-                                windowSettings.DetachableMeter.Opacity = windowSettings.DetachableMeter.Opacity;
-                            }
-                            ImGui.PopStyleColor(2);
-                            ImGui.Indent();
-                            ImGui.BeginDisabled(true);
-                            ImGui.TextWrapped("How transparent the Detachable Meter Window is.");
-                            ImGui.EndDisabled();
-                            ImGui.Unindent();
-
                             ImGui.SeparatorText("Integrations");
 
                             if (ImGui.CollapsingHeader("BPTimer##BPTimerOpacitySection", ImGuiTreeNodeFlags.DefaultOpen))

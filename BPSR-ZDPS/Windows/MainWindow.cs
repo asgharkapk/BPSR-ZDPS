@@ -43,6 +43,13 @@ namespace BPSR_ZDPS.Windows
         public Vector2 WindowSize;
         public Vector2 NextWindowSize = new();
 
+        // Single-meter mode state
+        private bool _isSingleMeterMode = false;
+        private MeterBase _singleMeterModeMeter = null;
+        private bool _singleMeterModeWasTopMost = false;
+        private bool _singleMeterModeAutoReentryEnabled = false;
+        private int _singleMeterModeRunOnceDelayed = 0;
+
         public void Draw()
         {
             DrawContent();
@@ -60,7 +67,6 @@ namespace BPSR_ZDPS.Windows
             SpawnTrackerWindow.Draw(this);
             ModuleSolver.Draw();
             EntityCacheViewerWindow.Draw(this);
-            DetachableMeterWindow.Draw(this);
         }
 
         static bool p_open = true;
@@ -69,18 +75,46 @@ namespace BPSR_ZDPS.Windows
             var io = ImGui.GetIO();
             var main_viewport = ImGui.GetMainViewport();
 
-            //ImGui.SetNextWindowPos(new Vector2(main_viewport.WorkPos.X + 200, main_viewport.WorkPos.Y + 120), ImGuiCond.FirstUseEver);
-            ImGui.SetNextWindowSize(DefaultWindowSize, ImGuiCond.FirstUseEver);
-            ImGui.SetNextWindowSizeConstraints(new Vector2(375, 150), new Vector2(ImGui.GETFLTMAX()));
+            // Auto-exit and auto-reentry logic for single-meter mode
+            bool hasActiveEncounter = EncounterManager.Current != null && EncounterManager.Current.HasStatsBeenRecorded();
 
-            if (Settings.Instance.WindowSettings.MainWindow.WindowPosition != new Vector2())
+            // Auto-exit to full mode in single-meter mode when no encounter (prevents disturbing gameplay)
+            if (_isSingleMeterMode && !hasActiveEncounter)
             {
-                ImGui.SetNextWindowPos(Settings.Instance.WindowSettings.MainWindow.WindowPosition, ImGuiCond.FirstUseEver);
+                ExitSingleMeterMode(restoreTopmost: false, cancelAutoReentry: false); // Keep auto-reentry enabled
             }
 
-            if (Settings.Instance.WindowSettings.MainWindow.WindowSize != new Vector2())
+            // Auto-reenter single-meter mode when encounter starts (if auto-reentry is enabled)
+            if (!_isSingleMeterMode && _singleMeterModeAutoReentryEnabled && hasActiveEncounter)
             {
-                ImGui.SetNextWindowSize(Settings.Instance.WindowSettings.MainWindow.WindowSize, ImGuiCond.FirstUseEver);
+                // Find the meter by name
+                var meter = Meters.FirstOrDefault(m => m.Name == Settings.Instance.WindowSettings.MainWindow.SingleMeterModeMeterName);
+                if (meter != null)
+                {
+                    EnterSingleMeterMode(meter, enableAutoReentry: true); // Re-enter with auto-reentry still enabled
+                }
+            }
+
+            // Window size constraints
+            ImGui.SetNextWindowSizeConstraints(new Vector2(375, 150), new Vector2(ImGui.GETFLTMAX()));
+
+            // Window position/size - conditional based on mode
+            if (_isSingleMeterMode)
+            {
+                // Use single-meter mode position/size
+                if (Settings.Instance.WindowSettings.MainWindow.SingleMeterModeWindowPosition != new Vector2())
+                    ImGui.SetNextWindowPos(Settings.Instance.WindowSettings.MainWindow.SingleMeterModeWindowPosition, ImGuiCond.FirstUseEver);
+                if (Settings.Instance.WindowSettings.MainWindow.SingleMeterModeWindowSize != new Vector2())
+                    ImGui.SetNextWindowSize(Settings.Instance.WindowSettings.MainWindow.SingleMeterModeWindowSize, ImGuiCond.FirstUseEver);
+            }
+            else
+            {
+                // Use full-mode position/size
+                ImGui.SetNextWindowSize(DefaultWindowSize, ImGuiCond.FirstUseEver);
+                if (Settings.Instance.WindowSettings.MainWindow.WindowPosition != new Vector2())
+                    ImGui.SetNextWindowPos(Settings.Instance.WindowSettings.MainWindow.WindowPosition, ImGuiCond.FirstUseEver);
+                if (Settings.Instance.WindowSettings.MainWindow.WindowSize != new Vector2())
+                    ImGui.SetNextWindowSize(Settings.Instance.WindowSettings.MainWindow.WindowSize, ImGuiCond.FirstUseEver);
             }
 
             if (NextWindowPosition != new Vector2())
@@ -101,7 +135,17 @@ namespace BPSR_ZDPS.Windows
                 exWindowFlags |= ImGuiWindowFlags.NoInputs;
             }
 
-            ImGuiWindowFlags window_flags = ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoDocking | exWindowFlags;
+            ImGuiWindowFlags window_flags;
+            if (_isSingleMeterMode)
+            {
+                // Single-meter mode: no scrollbar
+                window_flags = ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoScrollbar | exWindowFlags;
+            }
+            else
+            {
+                // Full mode
+                window_flags = ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoDocking | exWindowFlags;
+            }
             
             if (!p_open)
             {
@@ -232,56 +276,86 @@ namespace BPSR_ZDPS.Windows
                 UpdateAvailableWindow.Open();
             }
 
-            ImGuiTableFlags table_flags = ImGuiTableFlags.SizingStretchSame;
-            if (ImGui.BeginTable("##MetersTable", Meters.Count, table_flags))
+            // Single-meter mode delayed initialization
+            if (_isSingleMeterMode && _singleMeterModeRunOnceDelayed == 0)
             {
-                ImGui.TableSetupColumn("##TabBtn", ImGuiTableColumnFlags.WidthStretch | ImGuiTableColumnFlags.DefaultHide | ImGuiTableColumnFlags.NoResize, 1f, 0);
-
-                for (int i = 0; i < Meters.Count; i++)
+                _singleMeterModeRunOnceDelayed++;
+            }
+            else if (_isSingleMeterMode && _singleMeterModeRunOnceDelayed == 1)
+            {
+                _singleMeterModeRunOnceDelayed++;
+                if (IsTopMost)
                 {
-                    ImGui.TableNextColumn();
+                    Utils.SetWindowTopmost();
+                    Utils.SetWindowOpacity(Settings.Instance.WindowSettings.MainWindow.Opacity * 0.01f);
+                }
+            }
 
-                    bool isSelected = (SelectedTabIndex == i);
-
-                    ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
-
-                    if (isSelected)
-                    {
-                        ImGui.PushStyleColor(ImGuiCol.Button, Colors.DimGray);
-                    }
-
-                    if (ImGui.Button($"{Meters[i].Name}##TabBtn_{i}", new Vector2(-1, 0)))
-                    {
-                        SelectedTabIndex = i;
-                    }
-
-                    // Right-click to detach meter as popup
-                    if (ImGui.IsItemHovered() && ImGui.IsMouseReleased(ImGuiMouseButton.Right))
-                    {
-                        DetachableMeterWindow.ToggleDetachMeter(Meters[i], this);
-                    }
-
-                    if (isSelected)
-                    {
-                        ImGui.PopStyleColor();
-                    }
-
+            // Content rendering - conditional based on mode
+            if (_isSingleMeterMode)
+            {
+                // Single-meter mode: simplified menu bar + single meter
+                if (_singleMeterModeMeter != null)
+                {
+                    ImGui.PushStyleVar(ImGuiStyleVar.ScrollbarSize, 0f);
+                    _singleMeterModeMeter.Draw(this);
                     ImGui.PopStyleVar();
                 }
-
-                ImGui.EndTable();
             }
-
-            ImGui.BeginChild("MeterChild", new Vector2(0, - ImGui.GetFrameHeightWithSpacing()));
-
-            if (SelectedTabIndex > -1)
+            else
             {
-                Meters[SelectedTabIndex].Draw(this);
+                // Full mode: tab rendering
+                ImGuiTableFlags table_flags = ImGuiTableFlags.SizingStretchSame;
+                if (ImGui.BeginTable("##MetersTable", Meters.Count, table_flags))
+                {
+                    ImGui.TableSetupColumn("##TabBtn", ImGuiTableColumnFlags.WidthStretch | ImGuiTableColumnFlags.DefaultHide | ImGuiTableColumnFlags.NoResize, 1f, 0);
+
+                    for (int i = 0; i < Meters.Count; i++)
+                    {
+                        ImGui.TableNextColumn();
+
+                        bool isSelected = (SelectedTabIndex == i);
+
+                        ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 0);
+
+                        if (isSelected)
+                        {
+                            ImGui.PushStyleColor(ImGuiCol.Button, Colors.DimGray);
+                        }
+
+                        if (ImGui.Button($"{Meters[i].Name}##TabBtn_{i}", new Vector2(-1, 0)))
+                        {
+                            SelectedTabIndex = i;
+                        }
+
+                        // Right-click to enter single-meter mode
+                        if (ImGui.IsItemHovered() && ImGui.IsMouseReleased(ImGuiMouseButton.Right))
+                        {
+                            EnterSingleMeterMode(Meters[i]);
+                        }
+
+                        if (isSelected)
+                        {
+                            ImGui.PopStyleColor();
+                        }
+
+                        ImGui.PopStyleVar();
+                    }
+
+                    ImGui.EndTable();
+                }
+
+                ImGui.BeginChild("MeterChild", new Vector2(0, - ImGui.GetFrameHeightWithSpacing()));
+
+                if (SelectedTabIndex > -1)
+                {
+                    Meters[SelectedTabIndex].Draw(this);
+                }
+
+                ImGui.EndChild();
+
+                DrawStatusBar();
             }
-
-            ImGui.EndChild();
-
-            DrawStatusBar();
 
             ImGui.End();
         }
@@ -293,228 +367,279 @@ namespace BPSR_ZDPS.Windows
             {
                 MainMenuBarSize = ImGui.GetWindowSize();
 
-                ImGui.Text("ZDPS - BPSR Damage Meter");
-
-                if (Utils.AppVersion != null)
+                if (_isSingleMeterMode)
                 {
-                    //ImGui.SetCursorPosX(MainMenuBarSize.X - (35 * 5)); // This pushes it against the previous button instead of having a gap
-                    //ImGui.SetCursorPosX(ImGui.GetContentRegionAvail().X); // This loosely locks it to right side
-                    ImGui.TextDisabled($"v{Utils.AppVersion}");
+                    DrawSingleMeterModeMenuBar();
+                }
+                else
+                {
+                    DrawFullModeMenuBar_Part1();
                 }
 
-                ImGui.SetCursorPosX(MainMenuBarSize.X - (settingsWidth * 4));
-                ImGui.PushFont(HelperMethods.Fonts["FASIcons"], ImGui.GetFontSize());
-                if (ImGui.MenuItem($"{FASIcons.WindowMinimize}##MinimizeBtn"))
-                {
-                    Utils.MinimizeWindow();
-                }
-                ImGui.PopFont();
+                ImGui.EndMenuBar();
+            }
+        }
 
-                ImGui.SetCursorPosX(MainMenuBarSize.X - (settingsWidth * 3));
-                ImGui.PushFont(HelperMethods.Fonts["FASIcons"], ImGui.GetFontSize());
-                ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1.0f, AppState.MousePassthrough ? 0.0f : 1.0f, AppState.MousePassthrough ? 0.0f : 1.0f, IsTopMost ? 1.0f : 0.5f));
-                if (ImGui.MenuItem($"{FASIcons.Thumbtack}##TopMostBtn"))
+        void DrawSingleMeterModeMenuBar()
+        {
+            // Simplified menu bar (similar to DetachableMeterWindow)
+            var current = EncounterManager.Current;
+            if (current != null)
+            {
+                ImGui.Text("Status:");
+                ImGui.SameLine();
+                ImGui.Text($"[{AppState.PlayerMeterPlacement}]");
+                ImGui.SameLine();
+
+                string duration = "00:00:00";
+                if (current.GetDuration().TotalSeconds > 0)
+                    duration = current.GetDuration().ToString("hh\\:mm\\:ss");
+                ImGui.Text(duration);
+
+                if (!string.IsNullOrEmpty(current.SceneName))
                 {
-                    if (!IsTopMost)
+                    ImGui.SameLine();
+                    ImGui.TextUnformatted($"- {current.SceneName}");
+                }
+
+                ImGui.SameLine();
+                string currentValuePerSecond = $"{Utils.NumberToShorthand(AppState.PlayerTotalMeterValue)} ({Utils.NumberToShorthand(AppState.PlayerMeterValuePerSecond)})";
+                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + float.Max(0.0f, ImGui.GetContentRegionAvail().X - ImGui.CalcTextSize(currentValuePerSecond).X));
+                ImGui.Text(currentValuePerSecond);
+            }
+            else
+            {
+                ImGui.Text("Status: (No encounter)");
+            }
+
+            // Right-click to return to full mode (manually, cancels auto-reentry)
+            if (ImGui.IsWindowHovered() && ImGui.IsMouseReleased(ImGuiMouseButton.Right))
+            {
+                ExitSingleMeterMode(restoreTopmost: true, cancelAutoReentry: true);
+            }
+        }
+
+        void DrawFullModeMenuBar_Part1()
+        {
+            ImGui.Text("ZDPS - BPSR Damage Meter");
+
+            if (Utils.AppVersion != null)
+            {
+                //ImGui.SetCursorPosX(MainMenuBarSize.X - (35 * 5)); // This pushes it against the previous button instead of having a gap
+                //ImGui.SetCursorPosX(ImGui.GetContentRegionAvail().X); // This loosely locks it to right side
+                ImGui.TextDisabled($"v{Utils.AppVersion}");
+            }
+
+            ImGui.SetCursorPosX(MainMenuBarSize.X - (settingsWidth * 4));
+            ImGui.PushFont(HelperMethods.Fonts["FASIcons"], ImGui.GetFontSize());
+            if (ImGui.MenuItem($"{FASIcons.WindowMinimize}##MinimizeBtn"))
+            {
+                Utils.MinimizeWindow();
+            }
+            ImGui.PopFont();
+
+            ImGui.SetCursorPosX(MainMenuBarSize.X - (settingsWidth * 3));
+            ImGui.PushFont(HelperMethods.Fonts["FASIcons"], ImGui.GetFontSize());
+            ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1.0f, AppState.MousePassthrough ? 0.0f : 1.0f, AppState.MousePassthrough ? 0.0f : 1.0f, IsTopMost ? 1.0f : 0.5f));
+            if (ImGui.MenuItem($"{FASIcons.Thumbtack}##TopMostBtn"))
+            {
+                if (!IsTopMost)
+                {
+                    Utils.SetWindowTopmost();
+                    Utils.SetWindowOpacity(Settings.Instance.WindowSettings.MainWindow.Opacity * 0.01f);
+                    LastPinnedOpacity = Settings.Instance.WindowSettings.MainWindow.Opacity;
+                    IsTopMost = true;
+                }
+                else
+                {
+                    Utils.UnsetWindowTopmost();
+                    Utils.SetWindowOpacity(1.0f);
+                    IsTopMost = false;
+                }
+            }
+            if (IsTopMost && LastPinnedOpacity != Settings.Instance.WindowSettings.MainWindow.Opacity)
+            {
+                Utils.SetWindowOpacity(Settings.Instance.WindowSettings.MainWindow.Opacity * 0.01f);
+                LastPinnedOpacity = Settings.Instance.WindowSettings.MainWindow.Opacity;
+            }
+            ImGui.PopStyleColor();
+            ImGui.PopFont();
+            ImGui.SetItemTooltip("Pin Window As Top Most");
+
+            // Create new Encounter button
+            ImGui.SetCursorPosX(MainMenuBarSize.X - (settingsWidth * 2));
+            ImGui.PushFont(HelperMethods.Fonts["FASIcons"], ImGui.GetFontSize());
+            if (ImGui.MenuItem($"{FASIcons.Rotate}##StartNewEncounterBtn"))
+            {
+                CreateNewEncounter();
+            }
+            ImGui.PopFont();
+            ImGui.SetItemTooltip("Start New Encounter");
+
+            ImGui.SetCursorPosX(MainMenuBarSize.X - settingsWidth);
+            ImGui.PushFont(HelperMethods.Fonts["FASIcons"], ImGui.GetFontSize());
+            if (ImGui.BeginMenu($"{FASIcons.Gear}##OptionsMenu"))
+            {
+                if (SettingsRunOnceDelayedPerOpen == 0)
+                {
+                    SettingsRunOnceDelayedPerOpen++;
+                }
+                else if (SettingsRunOnceDelayedPerOpen == 2)
+                {
+                    SettingsRunOnceDelayedPerOpen++;
+
+                    if (IsTopMost)
                     {
                         Utils.SetWindowTopmost();
-                        Utils.SetWindowOpacity(Settings.Instance.WindowSettings.MainWindow.Opacity * 0.01f);
-                        LastPinnedOpacity = Settings.Instance.WindowSettings.MainWindow.Opacity;
-                        IsTopMost = true;
                     }
                     else
                     {
                         Utils.UnsetWindowTopmost();
-                        Utils.SetWindowOpacity(1.0f);
-                        IsTopMost = false;
                     }
-                }
-                if (IsTopMost && LastPinnedOpacity != Settings.Instance.WindowSettings.MainWindow.Opacity)
-                {
-                    Utils.SetWindowOpacity(Settings.Instance.WindowSettings.MainWindow.Opacity * 0.01f);
-                    LastPinnedOpacity = Settings.Instance.WindowSettings.MainWindow.Opacity;
-                }
-                ImGui.PopStyleColor();
-                ImGui.PopFont();
-                ImGui.SetItemTooltip("Pin Window As Top Most");
-
-                // Create new Encounter button
-                ImGui.SetCursorPosX(MainMenuBarSize.X - (settingsWidth * 2));
-                ImGui.PushFont(HelperMethods.Fonts["FASIcons"], ImGui.GetFontSize());
-                if (ImGui.MenuItem($"{FASIcons.Rotate}##StartNewEncounterBtn"))
-                {
-                    CreateNewEncounter();
-                }
-                ImGui.PopFont();
-                ImGui.SetItemTooltip("Start New Encounter");
-
-                ImGui.SetCursorPosX(MainMenuBarSize.X - settingsWidth);
-                ImGui.PushFont(HelperMethods.Fonts["FASIcons"], ImGui.GetFontSize());
-                if (ImGui.BeginMenu($"{FASIcons.Gear}##OptionsMenu"))
-                {
-                    if (SettingsRunOnceDelayedPerOpen == 0)
-                    {
-                        SettingsRunOnceDelayedPerOpen++;
-                    }
-                    else if (SettingsRunOnceDelayedPerOpen == 2)
-                    {
-                        SettingsRunOnceDelayedPerOpen++;
-
-                        if (IsTopMost)
-                        {
-                            Utils.SetWindowTopmost();
-                        }
-                        else
-                        {
-                            Utils.UnsetWindowTopmost();
-                        }
-                    }
-                    else
-                    {
-                        SettingsRunOnceDelayedPerOpen++;
-                    }
-
-                    ImGui.PopFont();
-
-                    if (ImGui.MenuItem("Encounter History"))
-                    {
-                        EncounterHistoryWindow.Open();
-                    }
-
-                    if (ImGui.MenuItem("Database Manager"))
-                    {
-                        DatabaseManagerWindow.Open();
-                    }
-                    ImGui.SetItemTooltip("Manage the ZDatabase.db contents.");
-
-                    if (ImGui.BeginMenu("Raid Manager"))
-                    {
-                        if (ImGui.MenuItem("Cooldown Priority Tracker"))
-                        {
-                            RaidManagerCooldownsWindow.Open();
-                        }
-
-                        ImGui.EndMenu();
-                    }
-
-                    if (ImGui.BeginMenu("Benchmark"))
-                    {
-                        ImGui.TextUnformatted("Enter how many seconds you want to run a Benchmark session for:");
-                        ImGui.SetNextItemWidth(-1);
-                        int benchmarkTime = AppState.BenchmarkTime;
-                        ImGui.BeginDisabled(AppState.IsBenchmarkMode);
-                        if (ImGui.InputInt("##BenchmarkTimeInput", ref benchmarkTime, 1, 10))
-                        {
-                            if (benchmarkTime < 0)
-                            {
-                                benchmarkTime = 0;
-                            }
-                            else if (benchmarkTime > 1200)
-                            {
-                                // Limit to 1200 Seconds (20 minutes)
-                                benchmarkTime = 1200;
-                            }
-                            AppState.BenchmarkTime = benchmarkTime;
-                        }
-
-                        bool benchmarkSingleTarget = AppState.BenchmarkSingleTarget;
-                        ImGui.AlignTextToFramePadding();
-                        ImGui.Text("Only Track First Target Hit: ");
-                        ImGui.SameLine();
-                        ImGui.Checkbox("##BenchmarkSingleTarget", ref benchmarkSingleTarget);
-                        AppState.BenchmarkSingleTarget = benchmarkSingleTarget;
-
-                        ImGui.EndDisabled();
-                        
-                        ImGui.TextUnformatted("Note: The Benchmark time will start after the next attack.\nOnly data for your character will be processed.");
-                        if (AppState.IsBenchmarkMode)
-                        {
-                            if (ImGui.Button("Stop Benchmark Early", new Vector2(-1, 0)))
-                            {
-                                AppState.HasBenchmarkBegun = false;
-                                AppState.IsBenchmarkMode = false;
-                                EncounterManager.StartEncounter(false, EncounterStartReason.BenchmarkEnd);
-                            }
-                            ImGui.SetItemTooltip("Stops the current Benchmark before the time limit is reached.");
-                        }
-                        else
-                        {
-                            if (ImGui.Button("Start Benchmark", new Vector2(-1, 0)))
-                            {
-                                AppState.BenchmarkSingleTargetUUID = 0;
-                                AppState.IsBenchmarkMode = true;
-                                CreateNewEncounter();
-                            }
-                        }
-                        
-                        ImGui.EndMenu();
-                    }
-
-                    if (ImGui.BeginMenu("Integrations"))
-                    {
-                        bool isBPTimerEnabled = Settings.Instance.External.BPTimerSettings.ExternalBPTimerEnabled;
-                        if (ImGui.BeginMenu("BPTimer", isBPTimerEnabled))
-                        {
-                            if (ImGui.MenuItem("Spawn Tracker"))
-                            {
-                                SpawnTrackerWindow.Open();
-                            }
-                            ImGui.SetItemTooltip("View Field Boss and Magical Creature spawns.\nUses the data from BPTimer.com website.");
-                            ImGui.EndMenu();
-                        }
-                        if (!isBPTimerEnabled)
-                        {
-                            ImGui.SetItemTooltip("[BPTimer] must be Enabled in the [Settings > Integrations] menu.");
-                        }
-                        ImGui.EndMenu();
-                    }
-
-                    if (ImGui.MenuItem("Module Optimizer"))
-                    {
-                        ModuleSolver.Open();
-                    }
-                    ImGui.SetItemTooltip("Find the best module combos for your build.");
-
-                    ImGui.Separator();
-                    if (ImGui.MenuItem("Settings"))
-                    {
-                        SettingsWindow.Open();
-                    }
-                    ImGui.Separator();
-                    if (ImGui.BeginMenu("Debug"))
-                    {
-                        if (ImGui.MenuItem("Net Debug"))
-                        {
-                            NetDebug.Open();
-                        }
-                        if (ImGui.MenuItem("Dungeon Tracker"))
-                        {
-                            DebugDungeonTracker.Open();
-                        }
-                        if (ImGui.MenuItem("Entity Cache Viewer"))
-                        {
-                            EntityCacheViewerWindow.Open();
-                        }
-                        ImGui.EndMenu();
-                    }
-                    ImGui.Separator();
-                    if (ImGui.MenuItem("Exit"))
-                    {
-                        Settings.Instance.WindowSettings.MainWindow.WindowPosition = WindowPosition;
-                        Settings.Instance.WindowSettings.MainWindow.WindowSize = WindowSize;
-                        p_open = false;
-                    }
-                    ImGui.EndMenu();
                 }
                 else
                 {
-                    SettingsRunOnceDelayedPerOpen = 0;
-                    ImGui.PopFont();
+                    SettingsRunOnceDelayedPerOpen++;
                 }
-                settingsWidth = ImGui.GetItemRectSize().X;
 
-                ImGui.EndMenuBar();
+                ImGui.PopFont();
+
+                if (ImGui.MenuItem("Encounter History"))
+                {
+                    EncounterHistoryWindow.Open();
+                }
+
+                if (ImGui.MenuItem("Database Manager"))
+                {
+                    DatabaseManagerWindow.Open();
+                }
+                ImGui.SetItemTooltip("Manage the ZDatabase.db contents.");
+
+                if (ImGui.BeginMenu("Raid Manager"))
+                {
+                    if (ImGui.MenuItem("Cooldown Priority Tracker"))
+                    {
+                        RaidManagerCooldownsWindow.Open();
+                    }
+
+                    ImGui.EndMenu();
+                }
+
+                if (ImGui.BeginMenu("Benchmark"))
+                {
+                    ImGui.TextUnformatted("Enter how many seconds you want to run a Benchmark session for:");
+                    ImGui.SetNextItemWidth(-1);
+                    int benchmarkTime = AppState.BenchmarkTime;
+                    ImGui.BeginDisabled(AppState.IsBenchmarkMode);
+                    if (ImGui.InputInt("##BenchmarkTimeInput", ref benchmarkTime, 1, 10))
+                    {
+                        if (benchmarkTime < 0)
+                        {
+                            benchmarkTime = 0;
+                        }
+                        else if (benchmarkTime > 1200)
+                        {
+                            // Limit to 1200 Seconds (20 minutes)
+                            benchmarkTime = 1200;
+                        }
+                        AppState.BenchmarkTime = benchmarkTime;
+                    }
+
+                    bool benchmarkSingleTarget = AppState.BenchmarkSingleTarget;
+                    ImGui.AlignTextToFramePadding();
+                    ImGui.Text("Only Track First Target Hit: ");
+                    ImGui.SameLine();
+                    ImGui.Checkbox("##BenchmarkSingleTarget", ref benchmarkSingleTarget);
+                    AppState.BenchmarkSingleTarget = benchmarkSingleTarget;
+
+                    ImGui.EndDisabled();
+
+                    ImGui.TextUnformatted("Note: The Benchmark time will start after the next attack.\nOnly data for your character will be processed.");
+                    if (AppState.IsBenchmarkMode)
+                    {
+                        if (ImGui.Button("Stop Benchmark Early", new Vector2(-1, 0)))
+                        {
+                            AppState.HasBenchmarkBegun = false;
+                            AppState.IsBenchmarkMode = false;
+                            EncounterManager.StartEncounter(false, EncounterStartReason.BenchmarkEnd);
+                        }
+                        ImGui.SetItemTooltip("Stops the current Benchmark before the time limit is reached.");
+                    }
+                    else
+                    {
+                        if (ImGui.Button("Start Benchmark", new Vector2(-1, 0)))
+                        {
+                            AppState.BenchmarkSingleTargetUUID = 0;
+                            AppState.IsBenchmarkMode = true;
+                            CreateNewEncounter();
+                        }
+                    }
+
+                    ImGui.EndMenu();
+                }
+
+                if (ImGui.BeginMenu("Integrations"))
+                {
+                    bool isBPTimerEnabled = Settings.Instance.External.BPTimerSettings.ExternalBPTimerEnabled;
+                    if (ImGui.BeginMenu("BPTimer", isBPTimerEnabled))
+                    {
+                        if (ImGui.MenuItem("Spawn Tracker"))
+                        {
+                            SpawnTrackerWindow.Open();
+                        }
+                        ImGui.SetItemTooltip("View Field Boss and Magical Creature spawns.\nUses the data from BPTimer.com website.");
+                        ImGui.EndMenu();
+                    }
+                    if (!isBPTimerEnabled)
+                    {
+                        ImGui.SetItemTooltip("[BPTimer] must be Enabled in the [Settings > Integrations] menu.");
+                    }
+                    ImGui.EndMenu();
+                }
+
+                if (ImGui.MenuItem("Module Optimizer"))
+                {
+                    ModuleSolver.Open();
+                }
+                ImGui.SetItemTooltip("Find the best module combos for your build.");
+
+                ImGui.Separator();
+                if (ImGui.MenuItem("Settings"))
+                {
+                    SettingsWindow.Open();
+                }
+                ImGui.Separator();
+                if (ImGui.BeginMenu("Debug"))
+                {
+                    if (ImGui.MenuItem("Net Debug"))
+                    {
+                        NetDebug.Open();
+                    }
+                    if (ImGui.MenuItem("Dungeon Tracker"))
+                    {
+                        DebugDungeonTracker.Open();
+                    }
+                    if (ImGui.MenuItem("Entity Cache Viewer"))
+                    {
+                        EntityCacheViewerWindow.Open();
+                    }
+                    ImGui.EndMenu();
+                }
+                ImGui.Separator();
+                if (ImGui.MenuItem("Exit"))
+                {
+                    Settings.Instance.WindowSettings.MainWindow.WindowPosition = WindowPosition;
+                    Settings.Instance.WindowSettings.MainWindow.WindowSize = WindowSize;
+                    p_open = false;
+                }
+                ImGui.EndMenu();
             }
+            else
+            {
+                SettingsRunOnceDelayedPerOpen = 0;
+                ImGui.PopFont();
+            }
+            settingsWidth = ImGui.GetItemRectSize().X;
         }
 
         void DrawStatusBar()
@@ -576,6 +701,87 @@ namespace BPSR_ZDPS.Windows
             EncounterManager.StartEncounter(true);
         }
 
+        public void EnterSingleMeterMode(MeterBase meter, bool enableAutoReentry = true)
+        {
+            if (meter == null) return;
+
+            // Save current full-mode position/size
+            Settings.Instance.WindowSettings.MainWindow.WindowPosition = WindowPosition;
+            Settings.Instance.WindowSettings.MainWindow.WindowSize = WindowSize;
+
+            // Remember topmost state and enable topmost for single-meter mode
+            _singleMeterModeWasTopMost = IsTopMost;
+            Settings.Instance.WindowSettings.MainWindow.SingleMeterModeWasTopMost = IsTopMost;
+
+            _isSingleMeterMode = true;
+            _singleMeterModeMeter = meter;
+            _singleMeterModeAutoReentryEnabled = enableAutoReentry;
+            _singleMeterModeRunOnceDelayed = 0;
+
+            Settings.Instance.WindowSettings.MainWindow.IsSingleMeterMode = true;
+            Settings.Instance.WindowSettings.MainWindow.SingleMeterModeMeterName = meter.Name;
+            Settings.Instance.WindowSettings.MainWindow.SingleMeterModeAutoReentryEnabled = enableAutoReentry;
+            Settings.Save();
+
+            // Always enable topmost when entering single-meter mode
+            if (!IsTopMost)
+            {
+                Utils.SetWindowTopmost();
+                Utils.SetWindowOpacity(Settings.Instance.WindowSettings.MainWindow.Opacity * 0.01f);
+                IsTopMost = true;
+            }
+        }
+
+        public void ExitSingleMeterMode(bool restoreTopmost = false, bool cancelAutoReentry = false)
+        {
+            if (!_isSingleMeterMode) return;
+
+            // Save single-meter mode position/size
+            Settings.Instance.WindowSettings.MainWindow.SingleMeterModeWindowPosition = WindowPosition;
+            Settings.Instance.WindowSettings.MainWindow.SingleMeterModeWindowSize = WindowSize;
+
+            _isSingleMeterMode = false;
+            _singleMeterModeMeter = null;
+
+            // Cancel auto-reentry if user manually exited (right-click menu bar)
+            if (cancelAutoReentry)
+            {
+                _singleMeterModeAutoReentryEnabled = false;
+                Settings.Instance.WindowSettings.MainWindow.SingleMeterModeAutoReentryEnabled = false;
+            }
+
+            Settings.Instance.WindowSettings.MainWindow.IsSingleMeterMode = false;
+            Settings.Instance.WindowSettings.MainWindow.SingleMeterModeMeterName = "";
+            Settings.Save();
+
+            // Restore topmost state to what it was before entering single-meter mode
+            if (restoreTopmost)
+            {
+                if (_singleMeterModeWasTopMost && !IsTopMost)
+                {
+                    Utils.SetWindowTopmost();
+                    Utils.SetWindowOpacity(Settings.Instance.WindowSettings.MainWindow.Opacity * 0.01f);
+                    IsTopMost = true;
+                }
+                else if (!_singleMeterModeWasTopMost && IsTopMost)
+                {
+                    Utils.UnsetWindowTopmost();
+                    Utils.SetWindowOpacity(1.0f);
+                    IsTopMost = false;
+                }
+            }
+            else
+            {
+                // Always disable topmost when auto-exiting (no encounter)
+                if (IsTopMost)
+                {
+                    Utils.UnsetWindowTopmost();
+                    Utils.SetWindowOpacity(1.0f);
+                    IsTopMost = false;
+                }
+            }
+        }
+
         public void ToggleMouseClickthrough()
         {
             AppState.MousePassthrough = !AppState.MousePassthrough;
@@ -590,5 +796,13 @@ namespace BPSR_ZDPS.Windows
     public class MainWindowWindowSettings : WindowSettingsBase
     {
         public float MeterBarScale = 1.0f;
+
+        // Single-meter mode settings
+        public bool IsSingleMeterMode = false;
+        public string SingleMeterModeMeterName = "";
+        public Vector2 SingleMeterModeWindowPosition = new();
+        public Vector2 SingleMeterModeWindowSize = new();
+        public bool SingleMeterModeWasTopMost = false;
+        public bool SingleMeterModeAutoReentryEnabled = false;
     }
 }

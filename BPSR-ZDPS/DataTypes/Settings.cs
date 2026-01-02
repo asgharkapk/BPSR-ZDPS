@@ -161,7 +161,6 @@ public class WindowSettings : ICloneable
     public EntityCacheViewerWindowSettings EntityCacheViewer { get; set; } = new();
     public SpawnTrackerWindowSettings SpawnTracker { get; set; } = new();
     public ModuleWindowSettings ModuleWindow { get; set; } = new();
-    public DetachableMeterWindowSettings DetachableMeter { get; set; } = new();
 
     public object Clone()
     {
@@ -172,10 +171,4 @@ public class WindowSettings : ICloneable
         cloned.SpawnTracker = (SpawnTrackerWindowSettings)this.SpawnTracker.Clone();
         return cloned;
     }
-}
-
-public class DetachableMeterWindowSettings : WindowSettingsBase
-{
-    // Per-meter position/size storage (keyed by meter name)
-    public Dictionary<string, (Vector2 pos, Vector2 size)> MeterWindowSettings { get; set; } = new();
 }
