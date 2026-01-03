@@ -297,43 +297,64 @@ namespace BPSR_ZDPS
         public static void SetWindowClickThrough(bool clickThrough, ImGuiViewportPtr? viewport = null)
         {
             viewport = viewport ?? ImGui.GetWindowViewport();
-            GLFW.SetWindowAttrib((GLFWwindowPtr)viewport.Value.PlatformHandle, GLFW.GLFW_MOUSE_PASSTHROUGH, 1);
+            if (viewport.Value.PlatformHandle != null)
+            {
+                GLFW.SetWindowAttrib((GLFWwindowPtr)viewport.Value.PlatformHandle, GLFW.GLFW_MOUSE_PASSTHROUGH, 1);
+            }
         }
 
         public static void SetWindowTopmost(ImGuiViewportPtr? viewport = null)
         {
             viewport = viewport ?? ImGui.GetWindowViewport();
-            SetWindowTopmost((IntPtr)viewport.Value.PlatformHandleRaw);
+            if (viewport.Value.PlatformHandleRaw != null)
+            {
+                SetWindowTopmost((IntPtr)viewport.Value.PlatformHandleRaw);
+            }
         }
-        
+
         public static void UnsetWindowTopmost(ImGuiViewportPtr? viewport = null)
         {
             viewport = viewport ?? ImGui.GetWindowViewport();
-            UnsetWindowTopmost((IntPtr)viewport.Value.PlatformHandleRaw);
+            if (viewport.Value.PlatformHandleRaw != null)
+            {
+                UnsetWindowTopmost((IntPtr)viewport.Value.PlatformHandleRaw);
+            }
         }
         
         public static void SetWindowOpacity(float alpha, ImGuiViewportPtr? viewport = null)
         {
             viewport = viewport ?? ImGui.GetWindowViewport();
-            GLFW.SetWindowOpacity((GLFWwindowPtr) viewport.Value.PlatformHandle, alpha);
+            if (viewport.Value.PlatformHandle != null)
+            {
+                GLFW.SetWindowOpacity((GLFWwindowPtr) viewport.Value.PlatformHandle, alpha);
+            }
         }
         
         public static void BringWindowToFront(ImGuiViewportPtr? viewport = null)
         {
             viewport = viewport ?? ImGui.GetWindowViewport();
-            User32.SetForegroundWindow((IntPtr)viewport.Value.PlatformHandleRaw);
+            if (viewport.Value.PlatformHandleRaw != null)
+            {
+                User32.SetForegroundWindow((IntPtr)viewport.Value.PlatformHandleRaw);
+            }
         }
-        
+
         public static void MinimizeWindow(ImGuiViewportPtr? viewport = null)
         {
             viewport = viewport ?? ImGui.GetWindowViewport();
-            User32.ShowWindow((IntPtr)viewport.Value.PlatformHandleRaw, User32.SW_MINIMIZE);
+            if (viewport.Value.PlatformHandleRaw != null)
+            {
+                User32.ShowWindow((IntPtr)viewport.Value.PlatformHandleRaw, User32.SW_MINIMIZE);
+            }
         }
 
         public static void RestoreWindow(ImGuiViewportPtr? viewport = null)
         {
             viewport = viewport ?? ImGui.GetWindowViewport();
-            User32.ShowWindow((IntPtr)viewport.Value.PlatformHandleRaw, User32.SW_RESTORE);
+            if (viewport.Value.PlatformHandleRaw != null)
+            {
+                User32.ShowWindow((IntPtr)viewport.Value.PlatformHandleRaw, User32.SW_RESTORE);
+            }
         }
 
         public static void SetWindowTopmost(IntPtr hWnd)
