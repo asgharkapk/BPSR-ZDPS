@@ -357,6 +357,15 @@ namespace BPSR_ZDPS
             }
         }
 
+        public static void SendWindowToBack(ImGuiViewportPtr? viewport = null)
+        {
+            viewport = viewport ?? ImGui.GetWindowViewport();
+            if (viewport.Value.PlatformHandleRaw != null)
+            {
+                User32.SetWindowPos((IntPtr)viewport.Value.PlatformHandleRaw, User32.HWND_BOTTOM, 0, 0, 0, 0, User32.SWP_NOMOVE | User32.SWP_NOSIZE);
+            }
+        }
+
         public static void SetWindowTopmost(IntPtr hWnd)
         {
             User32.SetWindowPos(hWnd, User32.HWND_TOPMOST, 0, 0, 0, 0, User32.SWP_NOMOVE | User32.SWP_NOSIZE);
