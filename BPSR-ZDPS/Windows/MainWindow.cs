@@ -78,12 +78,14 @@ namespace BPSR_ZDPS.Windows
 
             bool hasActiveEncounter = EncounterManager.Current != null && EncounterManager.Current.HasStatsBeenRecorded();
 
-            // Auto-reentry: If mode is enabled and encounter starts, switch to single meter view
-            // Don't call EnterSingleMeterMode here because we're before ImGui.Begin() (viewport invalid)
             if (_singleMeterModeEnabled && _singleMeterModeAutoReentryEnabled && hasActiveEncounter && !_isSingleMeterMode)
             {
-                _isSingleMeterMode = true; // Switch view (must happen before Begin)
-                // Window state will be applied after Begin at lines 167-185 based on current state
+                Settings.Instance.WindowSettings.MainWindow.WindowPosition = WindowPosition;
+                Settings.Instance.WindowSettings.MainWindow.WindowSize = WindowSize;
+                Settings.Save();
+
+                _isSingleMeterMode = true;
+                _justSwitchedMode = true;
             }
 
             ImGui.SetNextWindowSizeConstraints(new Vector2(375, 150), new Vector2(ImGui.GETFLTMAX()));
@@ -155,29 +157,27 @@ namespace BPSR_ZDPS.Windows
             WindowPosition = ImGui.GetWindowPos();
             WindowSize = ImGui.GetWindowSize();
 
-            // Apply window state based on current conditions (always, not just on transitions)
-            // This ensures window state is consistent regardless of how we got here
-
             bool shouldShowSingleMeter = _isSingleMeterMode && hasActiveEncounter;
             bool shouldSendToBack = _isSingleMeterMode && !hasActiveEncounter;
 
             if (shouldShowSingleMeter && !IsTopMost)
             {
-                // Single meter mode with active encounter: set topmost + opacity
                 Utils.SetWindowTopmost();
                 Utils.SetWindowOpacity(Settings.Instance.WindowSettings.MainWindow.Opacity * 0.01f);
                 IsTopMost = true;
             }
             else if (!shouldShowSingleMeter && IsTopMost)
             {
-                // Not showing single meter with encounter: unset topmost, reset opacity
                 Utils.UnsetWindowTopmost();
                 Utils.SetWindowOpacity(1.0f);
                 IsTopMost = false;
 
                 if (shouldSendToBack)
                 {
-                    // Single meter mode but no encounter: send to back
+                    Settings.Instance.WindowSettings.MainWindow.SingleMeterModeWindowPosition = WindowPosition;
+                    Settings.Instance.WindowSettings.MainWindow.SingleMeterModeWindowSize = WindowSize;
+                    Settings.Save();
+
                     Utils.SendWindowToBack();
                 }
             }
@@ -724,7 +724,6 @@ namespace BPSR_ZDPS.Windows
             _singleMeterModeWasTopMost = IsTopMost;
             Settings.Instance.WindowSettings.MainWindow.SingleMeterModeWasTopMost = IsTopMost;
 
-            // Enable single meter mode (user preference)
             _singleMeterModeEnabled = true;
             _singleMeterModeMeter = meter;
             _singleMeterModeAutoReentryEnabled = enableAutoReentry;
@@ -735,12 +734,8 @@ namespace BPSR_ZDPS.Windows
             Settings.Instance.WindowSettings.MainWindow.SingleMeterModeAutoReentryEnabled = enableAutoReentry;
             Settings.Save();
 
-            // Determine which view to show based on whether encounter exists
             bool hasActiveEncounter = EncounterManager.Current != null && EncounterManager.Current.HasStatsBeenRecorded();
             _isSingleMeterMode = hasActiveEncounter;
-
-            // NOTE: Window state changes (topmost, opacity, send to back) are now handled
-            // by the main loop after ImGui.Begin() at lines 158-183, based on current state
         }
 
         public void ExitSingleMeterMode(bool restoreTopmost = false, bool cancelAutoReentry = false)
@@ -750,10 +745,8 @@ namespace BPSR_ZDPS.Windows
             Settings.Instance.WindowSettings.MainWindow.SingleMeterModeWindowPosition = WindowPosition;
             Settings.Instance.WindowSettings.MainWindow.SingleMeterModeWindowSize = WindowSize;
 
-            // Apply window state BEFORE switching modes (while viewport is still valid)
             if (restoreTopmost)
             {
-                // Restore to the state before entering single meter mode
                 if (_singleMeterModeWasTopMost)
                 {
                     Utils.SetWindowTopmost();
@@ -769,17 +762,14 @@ namespace BPSR_ZDPS.Windows
             }
             else
             {
-                // Always unset topmost and reset opacity when not restoring
                 Utils.UnsetWindowTopmost();
                 Utils.SetWindowOpacity(1.0f);
                 IsTopMost = false;
-                // Send window to back so it doesn't block the game
                 Utils.SendWindowToBack();
             }
 
-            // Now switch modes
             _isSingleMeterMode = false;
-            _singleMeterModeEnabled = false; // Also disable the mode
+            _singleMeterModeEnabled = false;
             _singleMeterModeMeter = null;
             _justSwitchedMode = true;
 
