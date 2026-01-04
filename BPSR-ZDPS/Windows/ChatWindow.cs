@@ -289,9 +289,9 @@ namespace BPSR_ZDPS.Windows
                 ImGui.TextUnformatted("Background Opacity:");
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(200);
-                if (ImGui.SliderFloat("##BackgroundOpacity", ref backgroundOpacity, 0, 1f))
+                if (ImGui.SliderFloat("##BackgroundOpacity", ref backgroundOpacity, 0, 1f, $"{(int)(backgroundOpacity * 100)}%%", ImGuiSliderFlags.ClampOnInput))
                 {
-                    chatWindowSettings.BackgroundOpacity = backgroundOpacity;
+                    chatWindowSettings.BackgroundOpacity = MathF.Round(backgroundOpacity, 2);
                 }
 
                 int opacity = chatWindowSettings.Opacity;
@@ -300,7 +300,7 @@ namespace BPSR_ZDPS.Windows
                 ImGui.Dummy(new Vector2(17, 0));
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(200);
-                if (ImGui.SliderInt("##Opacity", ref opacity, 10, 100))
+                if (ImGui.SliderInt("##Opacity", ref opacity, 10, 100, $"{opacity}%%", ImGuiSliderFlags.ClampOnInput))
                 {
                     chatWindowSettings.Opacity = opacity;
                     Utils.SetWindowOpacity(chatWindowSettings.Opacity * 0.01f, windowViewport);
