@@ -4,7 +4,7 @@ name: Release (auto-tag, multi-rid matrix)
 on:
   push:
     branches:
-      - main
+      - master
   workflow_dispatch:
 
 env:
@@ -45,8 +45,6 @@ jobs:
       matrix:
         runtime:
           - win-x64
-          - win-x86
-          - linux-x64
         selfContained:
           - "true"
           - "false"
