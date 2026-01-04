@@ -1,0 +1,105 @@
+# Automatic release workflow: tags in v.YYYY-MM-DD.r{run_number} format and matrix publish
+name: Release (auto-tag, multi-rid matrix)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  BUILD_CONFIGURATION: Release
+
+jobs:
+  create_tag:
+    name: Create tag
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.set_tag.outputs.TAG }}
+    steps:
+      - name: Set date and tag
+        id: set_tag
+        run: |
+          DATE=$(date -u +%F)
+          TAG="v.${DATE}.r${GITHUB_RUN_NUMBER}"
+          echo "TAG=${TAG}" >> $GITHUB_OUTPUT
+          echo "Computed tag: ${TAG}"
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Create tag and push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git tag ${{ steps.set_tag.outputs.TAG }}
+          git push origin ${{ steps.set_tag.outputs.TAG }}
+
+  build:
+    name: Build and publish matrix
+    runs-on: ubuntu-latest
+    needs: create_tag
+    strategy:
+      matrix:
+        runtime:
+          - win-x64
+          - win-x86
+          - linux-x64
+        selfContained:
+          - "true"
+          - "false"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Publish (matrix)
+        id: publish
+        run: |
+          RUNTIME=${{ matrix.runtime }}
+          SELF=${{ matrix.selfContained }}
+          OUTDIR=publish/${RUNTIME}/${SELF}
+          mkdir -p $OUTDIR
+          dotnet publish -c ${{ env.BUILD_CONFIGURATION }} -r $RUNTIME --self-contained $SELF -p:PublishTrimmed=false -o $OUTDIR
+          echo "artifact_path=$OUTDIR" >> $GITHUB_OUTPUT
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-${{ matrix.runtime }}-self${{ matrix.selfContained }}
+          path: ${{ steps.publish.outputs.artifact_path }}
+
+  create_release:
+    name: Create GitHub Release and attach artifacts
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Create release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.create_tag.outputs.tag }}
+          name: Release ${{ needs.create_tag.outputs.tag }}
+          body: Automated build and publish for ${{ needs.create_tag.outputs.tag }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Attach artifacts to release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: ./artifacts/**
+          token: ${{ secrets.GITHUB_TOKEN }}
