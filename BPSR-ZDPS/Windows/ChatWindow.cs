@@ -35,8 +35,8 @@ namespace BPSR_ZDPS.Windows
 
                 ChatManager.AddChatTab(new ChatTabConfig()
                 {
-                    Name = "Guild / Team",
-                    Channels = [ChitChatChannelType.ChannelUnion, ChitChatChannelType.ChannelTeam]
+                    Name = "Guild / Group",
+                    Channels = [ChitChatChannelType.ChannelUnion, ChitChatChannelType.ChannelGroup]
                 });
 
                 ChatManager.AddChatTab(new ChatTabConfig()
@@ -51,7 +51,8 @@ namespace BPSR_ZDPS.Windows
                         ChitChatChannelType.ChannelPrivate,
                         ChitChatChannelType.ChannelScene,
                         ChitChatChannelType.ChannelSystem,
-                        ChitChatChannelType.ChannelNull
+                        ChitChatChannelType.ChannelNull,
+                        ChitChatChannelType.ChannelTopNotice
                     ]
                 });
 
@@ -103,14 +104,18 @@ namespace BPSR_ZDPS.Windows
 
         private static void InnerDraw(ChatWindowSettings windowSettings)
         {
-            if (ImGui.Begin($"ChatWindow", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoCollapse |
-                                    ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoBackground))
+            if (ImGui.Begin($"Chat###ChatWindow", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoCollapse |
+                                    ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoScrollbar))
             {
                 if (RunOnceDelayed == 0)
                 {
                     RunOnceDelayed++;
                 }
                 else if (RunOnceDelayed == 1)
+                {
+                    RunOnceDelayed++;
+                }
+                else if (RunOnceDelayed == 2)
                 {
                     RunOnceDelayed++;
                     Utils.SetCurrentWindowIcon();
@@ -123,7 +128,7 @@ namespace BPSR_ZDPS.Windows
                 }
 
                 ImGui.PushStyleColor(ImGuiCol.ChildBg, new Vector4(0, 0, 0, windowSettings.BackgroundOpacity));
-                if (ImGui.BeginChild("##ChatWindowChild"))
+                if (ImGui.BeginChild("##ChatWindowChild", new Vector2(0, windowSettings.WindowSize.Y - 8), ImGuiChildFlags.AutoResizeY))
                 {
                     DrawChatTabs();
                     DrawManageButtons();
@@ -140,7 +145,7 @@ namespace BPSR_ZDPS.Windows
 
                 if (RenderClearTime % 2 != 0)
                 {
-                    windowSettings.WindowSize = new Vector2(windowSettings.WindowSize.X - 1, windowSettings.WindowSize.Y);
+                    windowSettings.WindowSize = new Vector2(windowSettings.WindowSize.X, windowSettings.WindowSize.Y - 1);
                 }
 
                 ImGui.End();
@@ -185,7 +190,7 @@ namespace BPSR_ZDPS.Windows
             }
             else
             {
-                ImGui.SetNextWindowSize(new Vector2(windowSettings.WindowSize.X + 1, windowSettings.WindowSize.Y));
+                ImGui.SetNextWindowSize(new Vector2(windowSettings.WindowSize.X, windowSettings.WindowSize.Y + 1));
             }
         }
 
@@ -223,7 +228,7 @@ namespace BPSR_ZDPS.Windows
             ImGui.PushID((int)tab.Config.Id);
             bool tabIsSelected = SelectedChatTab == tab;
 
-            if (tabIsSelected) ImGui.PushStyleColor(ImGuiCol.Button, Colors.OrangeRed);
+            if (tabIsSelected) ImGui.PushStyleColor(ImGuiCol.Button, Colors.DimGray);
             if (ImGui.Button(tab.Config.Name))
             {
                 SelectedChatTab = tab;
@@ -551,7 +556,7 @@ namespace BPSR_ZDPS.Windows
             {
                 ImGui.TableNextRow();
                 haveFiltersChanged |= ChannelToggle(config, "World", ChitChatChannelType.ChannelWorld);
-                haveFiltersChanged |= ChannelToggle(config, "Say", ChitChatChannelType.ChannelScene);
+                haveFiltersChanged |= ChannelToggle(config, "Local", ChitChatChannelType.ChannelScene);
                 haveFiltersChanged |= ChannelToggle(config, "Group", ChitChatChannelType.ChannelGroup);
                 haveFiltersChanged |= ChannelToggle(config, "Team", ChitChatChannelType.ChannelTeam);
 
@@ -620,7 +625,7 @@ namespace BPSR_ZDPS.Windows
             {
                 ChitChatChannelType.ChannelNull => "Null",
                 ChitChatChannelType.ChannelWorld => "World",
-                ChitChatChannelType.ChannelScene => "Scene",
+                ChitChatChannelType.ChannelScene => "Local",
                 ChitChatChannelType.ChannelTeam => "Team",
                 ChitChatChannelType.ChannelUnion => "Union",
                 ChitChatChannelType.ChannelPrivate => "Private",

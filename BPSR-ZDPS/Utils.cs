@@ -425,13 +425,13 @@ namespace BPSR_ZDPS
             var delta = DateTime.UtcNow - time.ToUniversalTime();
 
             if (delta.TotalSeconds < 60)
-                return $"{Math.Abs((int)delta.TotalSeconds)}s ago";
+                return $"{Math.Abs((int)delta.TotalSeconds)}s";
 
             if (delta.TotalMinutes < 60)
-                return $"{Math.Abs((int)delta.TotalMinutes)} {(Math.Abs((int)delta.TotalMinutes) == 1 ? "min" : "mins")} ago";
+                return $"{Math.Abs((int)delta.TotalMinutes)}m";
 
             if (delta.TotalHours < 24)
-                return $"{Math.Abs((int)delta.TotalHours)} hours ago";
+                return $"{Math.Abs((int)delta.TotalHours)}h";
 
             if (delta.TotalDays < 7)
                 return $"{Math.Abs((int)delta.TotalDays)} days ago";

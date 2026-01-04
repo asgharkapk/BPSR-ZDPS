@@ -7,6 +7,6 @@ namespace BPSR_ZDPS.DataTypes.Chat
         public ChatMsgInfo Msg = msg;
         public ChitChatChannelType Channel = channel;
         public long SenderId = senderId;
-        public DateTime TimeStamp = DateTimeOffset.FromUnixTimeSeconds(timestamp).DateTime;
+        public DateTime TimeStamp = DateTimeOffset.FromUnixTimeSeconds(timestamp).LocalDateTime;
     }
 }
