@@ -1577,8 +1577,21 @@ namespace BPSR_ZDPS
 
         public void SetProfessionId(int id)
         {
+            if (id == (int)DataTypes.Enums.Professions.EProfessionId.Profession_Dorothy || id == (int)DataTypes.Enums.Professions.EProfessionId.Profession_Lucy || id == (int)DataTypes.Enums.Professions.EProfessionId.Profession_Natsu)
+            {
+                // Don't allow setting the Profession to a temporary transform
+                return;
+            }
+
             ProfessionId = id;
             Profession = Professions.GetProfessionNameFromId(id);
+
+            int profId = Professions.GetProfessionIdFromSubProfessionId(SubProfessionId);
+            if (profId != ProfessionId)
+            {
+                SubProfessionId = (int)DataTypes.Enums.Professions.SubProfessionId.SubProfession_Unknown;
+                SubProfession = "";
+            }
 
             var cached = EntityCache.Instance.GetOrCreate(UUID);
             if (cached != null && id != 0)
@@ -1595,8 +1608,15 @@ namespace BPSR_ZDPS
             int profId = Professions.GetProfessionIdFromSubProfessionId(id);
             if (ProfessionId != profId)
             {
-                ProfessionId = profId;
-                Profession = Professions.GetProfessionNameFromId(profId);
+                if (id == (int)DataTypes.Enums.Professions.EProfessionId.Profession_Dorothy || id == (int)DataTypes.Enums.Professions.EProfessionId.Profession_Lucy || id == (int)DataTypes.Enums.Professions.EProfessionId.Profession_Natsu)
+                {
+                    // 
+                }
+                else
+                {
+                    ProfessionId = profId;
+                    Profession = Professions.GetProfessionNameFromId(profId);
+                }
             }
 
             var cached = EntityCache.Instance.GetOrCreate(UUID);
@@ -2030,6 +2050,14 @@ namespace BPSR_ZDPS
             {
                 SetSubProfessionId((int)subProfessionId);
             }
+            else
+            {
+                var professionId = Professions.GetBaseProfessionIdBySkillId(skillId);
+                if (professionId != 0)
+                {
+                    SetProfessionId(professionId);
+                }
+            }
         }
 
         public void AddHealing(
@@ -2060,6 +2088,14 @@ namespace BPSR_ZDPS
             if (subProfessionId != 0)
             {
                 SetSubProfessionId((int)subProfessionId);
+            }
+            else
+            {
+                var professionId = Professions.GetBaseProfessionIdBySkillId(skillId);
+                if (professionId != 0)
+                {
+                    SetProfessionId(professionId);
+                }
             }
         }
 
@@ -3038,9 +3074,19 @@ namespace BPSR_ZDPS
 
         }
 
+        public void SetName(string value)
+        {
+            Name = value;
+        }
+
         public void SetDescription(string value)
         {
             Description = value;
+        }
+
+        public void SetBuffType(DataTypes.Enum.EBuffType value)
+        {
+            BuffType = value;
         }
 
         public void SetEvent(int uuid, int baseId, int level, long fireUuid, string entityCasterName, int layer, int duration, int sourceConfigId)

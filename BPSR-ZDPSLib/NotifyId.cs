@@ -1,9 +1,9 @@
 ﻿namespace BPSR_ZDPSLib;
 
-public class NotifyId(ulong serviceId, uint methoidId)
+public class NotifyId(ulong serviceId, uint methodId)
 {
     public ulong ServiceId { get; set; } = serviceId;
-    public uint MethodId { get; set; } = methoidId;
+    public uint MethodId { get; set; } = methodId;
 
     public override bool Equals(object? obj)
     {

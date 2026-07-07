@@ -1,21 +1,17 @@
-﻿using BPSR_ZDPSLib;
+﻿using BPSR_ZDPS.DataTypes;
+using BPSR_ZDPSLib;
+using Google.Protobuf.Collections;
 using Serilog;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using static Zproto.WorldNtfCsharp.Types;
-using Zproto;
-using Google.Protobuf.Collections;
-using System.Numerics;
-using Silk.NET.Core.Native;
-using BPSR_ZDPS.DataTypes;
-using static HexaGen.Runtime.MemoryPool;
-using System.Collections.Concurrent;
 using ZLinq;
-using BPSR_ZDPS.Windows;
+using Zproto;
+using static Zproto.WorldNtfCsharp.Types;
 
 namespace BPSR_ZDPS
 {
@@ -43,6 +39,8 @@ namespace BPSR_ZDPS
             netCap.RegisterWorldNotifyHandler(BPSR_ZDPSLib.ServiceMethods.WorldNtf.SyncContainerData, ProcessSyncContainerData);
             netCap.RegisterWorldNotifyHandler(BPSR_ZDPSLib.ServiceMethods.WorldNtf.SyncContainerDirtyData, ProcessSyncContainerDirtyData);
 
+            netCap.RegisterWorldNotifyHandler(BPSR_ZDPSLib.ServiceMethods.WorldNtf.SyncServerTime, ProcessSyncServerTime);
+
             netCap.RegisterWorldNotifyHandler(BPSR_ZDPSLib.ServiceMethods.WorldNtf.SyncNearDeltaInfo, ProcessSyncNearDeltaInfo);
 
             netCap.RegisterWorldNotifyHandler(BPSR_ZDPSLib.ServiceMethods.WorldNtf.SyncToMeDeltaInfo, ProcessSyncToMeDeltaInfo);
@@ -50,8 +48,6 @@ namespace BPSR_ZDPS
             netCap.RegisterWorldNotifyHandler(BPSR_ZDPSLib.ServiceMethods.WorldNtf.SyncNearEntities, ProcessSyncNearEntities);
 
             netCap.RegisterWorldNotifyHandler(BPSR_ZDPSLib.ServiceMethods.WorldNtf.SyncSceneEvents, ProcessSyncSceneEvents);
-
-            netCap.RegisterNotifyHandler(936649811, (uint)BPSR_ZDPSLib.ServiceMethods.WorldActivityNtf.SyncHitInfo, ProcessSyncHitInfo);
 
             netCap.RegisterWorldNotifyHandler(BPSR_ZDPSLib.ServiceMethods.WorldNtf.SyncDungeonData, ProcessSyncDungeonData);
 
@@ -88,9 +84,12 @@ namespace BPSR_ZDPS
             netCap.RegisterNotifyHandler((ulong)EServiceId.WorldActNtf, (uint)BPSR_ZDPSLib.ServiceMethods.WorldActNtf.SyncWorldActData, ProcessSyncWorldActData);
 
             netCap.RegisterNotifyHandler((ulong)EServiceId.SocialNtf, (uint)BPSR_ZDPSLib.ServiceMethods.SocialNtf.NotifySocialData, ProcessNotifySocialData);
-            
+
+            netCap.RegisterNotifyHandler((ulong)EServiceId.WorldLoginNtf, (uint)BPSR_ZDPSLib.ServiceMethods.WorldLoginNtf.NotifyEnterWorld, ProcessNotifyEnterWorld);
+
             // Uncomment to debug print unhandled events
             //netCap.RegisterUnhandledHandler(ProcessUnhandled);
+            //netCap.RegisterUnhandledProxyHandler(ProcessProxyUnhandled);
 
             netCap.Start();
             System.Diagnostics.Debug.WriteLine("MessageManager.InitializeCapturing : Capturing Started...");
@@ -138,6 +137,127 @@ namespace BPSR_ZDPS
             if (payloadBuffer.Length == 0)
             {
                 return;
+            }
+        }
+
+        public static void ProcessProxyUnhandled(ProxyId proxyId, ReadOnlySpan<byte> payloadBuffer, ExtraPacketData extraData)
+        {
+            Type foundType = null;
+            switch ((EProxyServiceId)proxyId.ServiceId)
+            {
+                case EProxyServiceId.Ace:
+                    foundType = typeof(BPSR_ZDPSLib.ServiceMethods.AceProxy);
+                    break;
+                case EProxyServiceId.ChitChat:
+                    foundType = typeof(BPSR_ZDPSLib.ServiceMethods.ChitChatProxy);
+                    break;
+                case EProxyServiceId.Community:
+                    foundType = typeof(BPSR_ZDPSLib.ServiceMethods.CommunityProxy);
+                    break;
+                case EProxyServiceId.GrpcBand:
+                    foundType = typeof(BPSR_ZDPSLib.ServiceMethods.GrpcBandProxy);
+                    break;
+                case EProxyServiceId.GrpcCharactor:
+                    foundType = typeof(BPSR_ZDPSLib.ServiceMethods.GrpcCharactorProxy);
+                    break;
+                case EProxyServiceId.HttpPlatform:
+                    foundType = typeof(BPSR_ZDPSLib.ServiceMethods.HttpPlatformProxy);
+                    break;
+                case EProxyServiceId.Mahjong:
+                    foundType = typeof(BPSR_ZDPSLib.ServiceMethods.MahjongProxy);
+                    break;
+                case EProxyServiceId.Mail:
+                    foundType = typeof(BPSR_ZDPSLib.ServiceMethods.MailProxy);
+                    break;
+                case EProxyServiceId.Photograph:
+                    break;
+                case EProxyServiceId.Report:
+                    break;
+                case EProxyServiceId.Social:
+                    foundType = typeof(BPSR_ZDPSLib.ServiceMethods.SocialProxy);
+                    break;
+                case EProxyServiceId.World:
+                    foundType = typeof(BPSR_ZDPSLib.ServiceMethods.WorldProxy);
+                    break;
+                default:
+                    break;
+            }
+
+            string methodId = proxyId.MethodId.ToString();
+            if (foundType != null)
+            {
+                if (System.Enum.IsDefined(foundType, (int)proxyId.MethodId))
+                {
+                    methodId = $"{System.Enum.ToObject(foundType, (int)proxyId.MethodId)} ({proxyId.MethodId})";
+                }
+            }
+
+            System.Diagnostics.Debug.WriteLine($"ProcessProxyUnhandled ServiceId:{(EProxyServiceId)proxyId.ServiceId} MethodId:{methodId} Payload.Length:{payloadBuffer.Length}");
+            if (payloadBuffer.Length == 0)
+            {
+                return;
+            }
+        }
+
+        public static void ProcessNotifyEnterWorld(ReadOnlySpan<byte> payloadBuffer, ExtraPacketData extraData)
+        {
+            //Serilog.Log.Debug($"ProcessNotifyEnterWorld");
+
+            if (payloadBuffer.Length == 0)
+            {
+                return;
+            }
+            byte[] raw = payloadBuffer.ToArray();
+
+            var data = WorldLoginNtfCsharp.Types.NotifyEnterWorld.Parser.ParseFrom(payloadBuffer);
+
+            if (data.VRequest != null)
+            {
+                if (!string.IsNullOrEmpty(data.VRequest.SceneIp))
+                {
+                    if (AppState.SceneIp != data.VRequest.SceneIp)
+                    {
+                        Serilog.Log.Information($"Detected Game Server Address: {data.VRequest.SceneIp}");
+                    }
+                    AppState.SceneIp = data.VRequest.SceneIp;
+                }
+            }
+            //Serilog.Log.Debug($"ProcessNotifyEnterWorld data = {data}");
+        }
+
+        static DateTime LastSyncTimeLog = DateTime.MinValue;
+        public static void ProcessSyncServerTime(ReadOnlySpan<byte> payloadBuffer, ExtraPacketData extraData)
+        {
+            if (payloadBuffer.Length == 0)
+            {
+                return;
+            }
+
+            var vData = SyncServerTime.Parser.ParseFrom(payloadBuffer);
+
+            long delta = vData.ClientMilliseconds - vData.ServerMilliseconds;
+            if (vData.ClientMilliseconds > 0 && vData.ServerMilliseconds > 0)
+            {
+                AppState.ClientServerTimeSyncDelta = delta;
+            }
+
+            // Only log to file once every few minutes to avoid excess logging spam
+            if (DateTime.Now >= LastSyncTimeLog.AddMinutes(5))
+            {
+                if (vData.ClientMilliseconds != 0)
+                {
+                    LastSyncTimeLog = DateTime.Now;
+                }
+                string status = "Parity";
+                if (delta < 0)
+                {
+                    status = "Behind";
+                }
+                else if (delta > 0)
+                {
+                    status = "Ahead";
+                }
+                Serilog.Log.Debug($"SyncServerTime: Client={vData.ClientMilliseconds} | Server={vData.ServerMilliseconds} | Delta={delta}ms;{status}");
             }
         }
 
@@ -194,6 +314,9 @@ namespace BPSR_ZDPS
                         }
                     }
                 }
+
+                Log.Debug($"\t ConnectGuid = {vData.EnterSceneInfo.ConnectGuid}");
+                Log.Debug($"\t SceneGuid = {vData.EnterSceneInfo.SceneGuid}");
             }
         }
 
@@ -671,10 +794,6 @@ namespace BPSR_ZDPS
             MatchManager.ProcessMatchReadyStatus(vData, extraData);
         }
 
-        public static void ProcessSyncHitInfo(ReadOnlySpan<byte> payloadBuffer, ExtraPacketData extraData)
-        {
-            System.Diagnostics.Debug.WriteLine($"ProcessSyncHitInfo");
-        }
         public static bool IsWipeCheckQueued = false;
         public static void ProcessAttrs(long uuid, RepeatedField<Attr> attrs)
         {
@@ -885,7 +1004,7 @@ namespace BPSR_ZDPS
                             EncounterManager.Current.SetAttrKV(uuid, attrIdName, new List<Zproto.EquipNine>());
                             break;
                         }
-
+                        
                         List<Zproto.EquipNine> equipNineList = new();
                         while (!reader.IsAtEnd)
                         {
@@ -898,6 +1017,38 @@ namespace BPSR_ZDPS
                         }
                         EncounterManager.Current.SetAttrKV(uuid, "AttrEquipData", equipNineList);
                         break;
+                    /*case EAttrType.AttrFightResourceIds:
+                        if (isNoValue)
+                        {
+                            EncounterManager.Current.SetAttrKV(uuid, attrIdName, new List<int>());
+                            break;
+                        }
+
+                        List<int> fightResIds = new();
+                        while (!reader.IsAtEnd)
+                        {
+                            int len = reader.ReadLength();
+
+                            fightResIds.Add(len);
+                        }
+                        EncounterManager.Current.SetAttrKV(uuid, attrIdName, fightResIds);
+                        break;
+                    case EAttrType.AttrFightResources:
+                        if (isNoValue)
+                        {
+                            EncounterManager.Current.SetAttrKV(uuid, attrIdName, new List<int>());
+                            break;
+                        }
+
+                        List<int> fightRes = new();
+                        while (!reader.IsAtEnd)
+                        {
+                            int len = reader.ReadLength();
+
+                            fightRes.Add(len);
+                        }
+                        EncounterManager.Current.SetAttrKV(uuid, attrIdName, fightRes);
+                        break;*/
                     default:
                         EncounterManager.Current.SetAttrKV(uuid, attrIdName, isNoValue ? 0 : reader.ReadInt32());
                         //System.Diagnostics.Debug.WriteLine($"{attrIdName} was hit");
@@ -912,6 +1063,7 @@ namespace BPSR_ZDPS
             {
                 if (HelperMethods.DataTables.TempAttrs.Data.TryGetValue(tempAttr.Id.ToString(), out var matchedTempAttr))
                 {
+                    //System.Diagnostics.Debug.WriteLine($"TempAttr: UUID={uuid} Id={tempAttr.Id} Value={tempAttr.Value} TempAttr.Name={matchedTempAttr.Name},Params={string.Join(",", matchedTempAttr.AttrParams)}; PAT={matchedTempAttr.GetProtoAttrType()}, PLT={matchedTempAttr.GetProtoLogicType()}");
                     EncounterManager.Current.SetTempAttrKV(uuid, tempAttr.Id, new TempAttributesContainer() { Id = tempAttr.Id, Value = tempAttr.Value, TempAttr = matchedTempAttr });
                 }
                 else
@@ -1344,6 +1496,17 @@ namespace BPSR_ZDPS
                 AppState.PlayerUUID = uuid;
                 AppState.PlayerUID = Utils.UuidToEntityId(uuid);
             }
+            if (aoiSyncToMeDelta.SyncSkillCDs != null && aoiSyncToMeDelta.SyncSkillCDs.Count > 0)
+            {
+                //System.Diagnostics.Debug.WriteLine($"aoiSyncToMeDelta.SyncSkillCDs:\n{aoiSyncToMeDelta.SyncSkillCDs}");
+                foreach (var skillCd in aoiSyncToMeDelta.SyncSkillCDs)
+                {
+                    if (skillCd.Duration > 0)
+                    {
+                        // TODO: Handle reported skill cooldown data
+                    }
+                }
+            }
             var aoiSyncDelta = aoiSyncToMeDelta.BaseDelta;
             if (aoiSyncDelta == null)
             {
@@ -1428,14 +1591,6 @@ namespace BPSR_ZDPS
                 {
                     EncounterManager.Current.SetAbilityScore(playerUuid, vData.CharBase.FightPoint);
                 }
-
-                /*if (vData.CharBase.TeamInfo != null)
-                {
-                    if (vData.CharBase.TeamInfo.TeamId != 0)
-                    {
-                        System.Diagnostics.Debug.WriteLine("vData.CharBase.TeamInfo.TeamId != 0");
-                    }
-                }*/
             }
 
             var professionList = vData.ProfessionList;
@@ -1705,28 +1860,72 @@ namespace BPSR_ZDPS
                 {
                     var currentEncounterDuration = EncounterManager.Current.GetDuration();
                     var characterList = EncounterManager.Current.Entities.AsValueEnumerable().Where(x => x.Value.EntityType == EEntityType.EntChar);
+                    
                     foreach (var character in characterList)
                     {
+                        long foundDeathMarkerUUID = 0;
+                        long foundReviveMarkerUUID = 0;
+                        long foundWipeMarkerUUID = 0;
+                        BuffEvent? foundWipeMarker = null;
+
                         if (character.Value.RecentBuffEventHistory.Count > 0)
                         {
+                            // This list is ordered by when an event occurs regardless of UUID order
                             foreach (var recentBuff in character.Value.RecentBuffEventHistory)
                             {
-                                if (recentBuff.Value.BaseId == 510072)
-                                {
-                                    // Mark the Encounter as being in a Wipe State before forcing the end of it
-                                    // This allows us to handle cases of a New Objective being sent at the same time as the Wipe Buff (such as Season 2 Raids)
-                                    EncounterManager.Current.SetWipeState(true);
+                                // If BaseId 500111, the player has died
+                                // If BaseId 500112, the player has been revived
+                                // If BaseID 500111 then 510072, the player has died and a wipe followed
+                                // Every 500111 should have a matching 500112 unless this is a wipe
 
-                                    // This buff indicates a wipe is actively occurring.
-                                    // There are a few events that will occur over the next several seconds so we delay to let them register into the current event
-                                    if (recentBuff.Value.EventAddTime.Add(TimeSpan.FromSeconds(1.0)).TotalSeconds <= currentEncounterDuration.TotalSeconds)
+                                if (recentBuff.Value.BaseId == 500111)
+                                {
+                                    // Valid wipes will have a death marker present, we'll use it to verify if the wipe buff was incorrectly sent by the game or not
+                                    // 900122 is the BaseId that _should_ be used to reset HP and CDs when not dealing with a wipe, however the wipe version is incorrectly used sometimes
+                                    if (recentBuff.Value.Uuid > foundDeathMarkerUUID)
                                     {
-                                        Log.Debug($"Encounter Wipe Reset buff was found and duration was hit, creating a new Encounter now");
-                                        EncounterManager.Current.SetWipeState(true);
-                                        EncounterManager.StartEncounter(false, EncounterStartReason.Wipe);
-                                        return;
+                                        foundDeathMarkerUUID = recentBuff.Value.Uuid;
                                     }
                                 }
+                                else if (recentBuff.Value.BaseId == 500112)
+                                {
+                                    if (recentBuff.Value.Uuid > foundReviveMarkerUUID)
+                                    {
+                                        foundReviveMarkerUUID = recentBuff.Value.BaseId;
+                                    }
+                                }
+                                else if (recentBuff.Value.BaseId == 510072)
+                                {
+                                    if (recentBuff.Value.Uuid > foundWipeMarkerUUID)
+                                    {
+                                        foundWipeMarker = recentBuff.Value;
+                                        foundWipeMarkerUUID = recentBuff.Value.Uuid;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (foundDeathMarkerUUID > 0 && foundWipeMarkerUUID > 0 && foundDeathMarkerUUID < foundWipeMarkerUUID && foundWipeMarker != null)
+                        {
+                            if (foundWipeMarker.EventAddTime.TotalSeconds < 2 || EncounterManager.Current.StartTime.AddSeconds(1) > foundWipeMarker.AddDateTime)
+                            {
+                                // Some dungeons incorrectly send this buff on Start, this should let us ignore it
+                                EncounterManager.Current.SetWipeState(false);
+                                continue;
+                            }
+
+                            // Mark the Encounter as being in a Wipe State before forcing the end of it
+                            // This allows us to handle cases of a New Objective being sent at the same time as the Wipe Buff (such as Season 2 Raids)
+                            EncounterManager.Current.SetWipeState(true);
+
+                            // This buff indicates a wipe is actively occurring.
+                            // There are a few events that will occur over the next several seconds so we delay to let them register into the current event
+                            if (foundWipeMarker.EventAddTime.Add(TimeSpan.FromSeconds(1.0)).TotalSeconds <= currentEncounterDuration.TotalSeconds)
+                            {
+                                Log.Debug($"Encounter Wipe Reset buff was found and duration was hit, creating a new Encounter now");
+                                EncounterManager.Current.SetWipeState(true);
+                                EncounterManager.StartEncounter(false, EncounterStartReason.Wipe);
+                                return;
                             }
                         }
                     }

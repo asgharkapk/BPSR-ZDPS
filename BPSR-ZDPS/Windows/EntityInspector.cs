@@ -43,6 +43,11 @@ namespace BPSR_ZDPS.Windows
 
         static List<long> ShowAllInstancesSkillIds = new();
 
+        static List<int> LoadedSkillIdData = new();
+        static List<long> LoadedBuffUuidData = new();
+        static List<int> LoadedSkillBookData = new();
+        static bool ReloadCachedListData = false;
+
         // Graph storage variables
         static bool HasLoadedGraphsData = false;
         static double[] SkillSnapshotTimestampSeconds = [];
@@ -504,18 +509,22 @@ namespace BPSR_ZDPS.Windows
 
                 string[] FilterButtons = { "Damage", "Healing", "Taken", "Taken By Entity", "Attributes", "Buffs", "Graphs", "Skill Book", "Debug" };
 
-                for (int filerBtnIdx = 0; filerBtnIdx < FilterButtons.Length; filerBtnIdx++)
+                for (int filterBtnIdx = 0; filterBtnIdx < FilterButtons.Length; filterBtnIdx++)
                 {
-                    bool isSelected = TableFilterMode == (ETableFilterMode)filerBtnIdx;
+                    bool isSelected = TableFilterMode == (ETableFilterMode)filterBtnIdx;
 
                     if (isSelected)
                     {
                         ImGui.PushStyleColor(ImGuiCol.Button, Colors.DimGray);
                     }
 
-                    if (ImGui.Button($"{FilterButtons[filerBtnIdx]}##SkillStats_FilterBtn_{filerBtnIdx}"))
+                    if (ImGui.Button($"{FilterButtons[filterBtnIdx]}##SkillStats_FilterBtn_{filterBtnIdx}"))
                     {
-                        TableFilterMode = (ETableFilterMode)filerBtnIdx;
+                        if (TableFilterMode != (ETableFilterMode)filterBtnIdx)
+                        {
+                            ReloadCachedListData = true;
+                        }
+                        TableFilterMode = (ETableFilterMode)filterBtnIdx;
                     }
 
                     if (isSelected)
@@ -523,7 +532,7 @@ namespace BPSR_ZDPS.Windows
                         ImGui.PopStyleColor();
                     }
 
-                    if (filerBtnIdx < FilterButtons.Length - 1)
+                    if (filterBtnIdx < FilterButtons.Length - 1)
                     {
                         ImGui.SameLine();
                     }
@@ -606,10 +615,26 @@ namespace BPSR_ZDPS.Windows
 
                         ImGui.TableHeadersRow();
 
+                        if (ReloadCachedListData)
+                        {
+                            ReloadCachedListData = false;
+                            LoadedSkillIdData.Clear();
+                        }
+
                         for (int i = 0; i < skillStats.Count; i++)
                         {
                             var stat = skillStats.ElementAt(i);
                             int skillId = stat.Key;
+
+                            if (!LoadedSkillIdData.Contains(skillId))
+                            {
+                                LoadedSkillIdData.Add(skillId);
+                                if (HelperMethods.DataTables.Skills.Data.TryGetValue(skillId.ToString(), out var cachedSkill))
+                                {
+                                    // Update saved values, in memory only, with latest loaded skill data
+                                    stat.Value.SetName(cachedSkill.Name);
+                                }
+                            }
 
                             ImGui.TableNextColumn();
 
@@ -796,7 +821,7 @@ namespace BPSR_ZDPS.Windows
 
                             if (ShowAllInstancesSkillIds.Contains(skillId))
                             {
-                                var startTime = LoadedEncounterStartTime?.ToUniversalTime() ?? LoadedEntity.DamageStats.StartTime;
+                                var startTime = LoadedEncounterFirstDamageTimeStamp ?? LoadedEncounterStartTime?.ToUniversalTime() ?? LoadedEntity.DamageStats.StartTime;
 
                                 int snapshotIdx = 0;
                                 foreach (var snapshot in stat.Value.SkillSnapshots.AsValueEnumerable())
@@ -1074,6 +1099,20 @@ namespace BPSR_ZDPS.Windows
                                 var buffEvent = LoadedEntity.BuffEvents[(buffCount - 1) - i];
                                 int buffUuid = (int)buffEvent.Uuid;
 
+                                if (buffEvent.BaseId != 0 && !LoadedBuffUuidData.Contains(buffEvent.Uuid))
+                                {
+                                    LoadedBuffUuidData.Add(buffEvent.Uuid);
+                                    if (HelperMethods.DataTables.Buffs.Data.TryGetValue(buffEvent.BaseId.ToString(), out var cachedBuff))
+                                    {
+                                        // Update saved values, in memory only, with latest loaded buff data
+                                        buffEvent.SetName(cachedBuff.Name);
+                                        if (cachedBuff.BuffType != null)
+                                        {
+                                            buffEvent.SetBuffType(cachedBuff.BuffType.Value);
+                                        }
+                                    }
+                                }
+
                                 ImGui.TableNextColumn();
 
                                 int buffTypeColor = -1; // 0 = Debuff, 1 = Buff, 2 = Special/Unknown, (Overrides) 99 = Shield
@@ -1249,7 +1288,7 @@ namespace BPSR_ZDPS.Windows
                                 {
                                     if (buffEvent.AddDateTime != DateTime.MinValue)
                                     {
-                                        if (buffEvent.AddDateTime.CompareTo(LoadedEncounterFirstDamageTimeStamp) < 0)
+                                        //if (buffEvent.AddDateTime.CompareTo(LoadedEncounterFirstDamageTimeStamp) < 0)
                                         {
                                             // Added before the first damage event, display time as negative offset
                                             var diff = buffEvent.AddDateTime.Subtract((DateTime)LoadedEncounterFirstDamageTimeStamp);
@@ -1269,7 +1308,7 @@ namespace BPSR_ZDPS.Windows
                                 {
                                     if (buffEvent.RemoveDateTime != DateTime.MinValue)
                                     {
-                                        if (buffEvent.RemoveDateTime.CompareTo(LoadedEncounterFirstDamageTimeStamp) < 0)
+                                        //if (buffEvent.RemoveDateTime.CompareTo(LoadedEncounterFirstDamageTimeStamp) < 0)
                                         {
                                             // Removed before the first damage event, display time as negative offset
                                             var diff = buffEvent.RemoveDateTime.Subtract((DateTime)LoadedEncounterFirstDamageTimeStamp);
@@ -1470,6 +1509,16 @@ namespace BPSR_ZDPS.Windows
 
                                 foreach (var item in list)
                                 {
+                                    if (!LoadedSkillBookData.Contains(item.SkillId))
+                                    {
+                                        LoadedSkillBookData.Add(item.SkillId);
+                                        if (HelperMethods.DataTables.Skills.Data.TryGetValue(item.SkillId.ToString(), out var cachedSkill))
+                                        {
+                                            // Update saved values, in memory only, with latest loaded skill data
+                                            item.Name = cachedSkill.Name;
+                                        }
+                                    }
+
                                     ImGui.TableNextColumn();
                                     ImGui.Selectable($"{item.SkillId}", true, ImGuiSelectableFlags.SpanAllColumns);
                                     if (ImGui.BeginPopupContextItem())
@@ -1621,6 +1670,10 @@ namespace BPSR_ZDPS.Windows
             SkillSnapshotsHits = [];
             SkillScatterMap.Clear();
             ShowAllInstancesSkillIds = new();
+            LoadedSkillIdData = new();
+            LoadedBuffUuidData = new();
+            LoadedSkillBookData = new();
+            ReloadCachedListData = false;
         }
     }
 

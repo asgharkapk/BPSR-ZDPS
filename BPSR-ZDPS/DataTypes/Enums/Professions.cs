@@ -26,12 +26,14 @@ namespace BPSR_ZDPS.DataTypes.Enums
             Profession_VerdantOracle = 5,
             // UNK
             // UNK
-            // ThunderHandCannon
+            Profession_Dorothy = 8,
             Profession_HeavyGuardian = 9,
             // DarkSpiritDance
             Profession_Marksman = 11,
             Profession_ShieldKnight = 12,
             Profession_BeatPerformer = 13,
+            Profession_Lucy = 14,
+            Profession_Natsu = 15,
         }
 
         public enum SubProfessionId : int
@@ -80,6 +82,10 @@ namespace BPSR_ZDPS.DataTypes.Enums
             Profession_VerdantOracle = 109,
             SubProfession_Smite = 110,
             SubProfession_Lifebind = 111,
+
+            //Profession_Dorothy = 000,
+            //SubProfession_Dorothy1 = 125,
+            //SubProfession_Dorothy2 = 126,
 
             Profession_HeavyGuardian = 112,
             SubProfession_Earthfort = 113,

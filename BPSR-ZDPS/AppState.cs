@@ -19,6 +19,7 @@ namespace BPSR_ZDPS
         public static int ProfessionId { get; set; }
         public static string ProfessionName { get; set; }
         public static string SubProfessionName { get; set; }
+        public static string SceneIp { get; set; }
 
         public static int PlayerMeterPlacement { get; set; } // Current position on the active meter, 0 means not on it
 
@@ -44,6 +45,8 @@ namespace BPSR_ZDPS
 
         public static Encounter? ActiveEncounter = null;
         public static Encounter? OpenedHistoricalEncounter = null;
+
+        public static long ClientServerTimeSyncDelta = 0;
 
         public static void LoadDataTables()
         {
@@ -333,7 +336,7 @@ namespace BPSR_ZDPS
                     {
                         if (combinedLocs.TryGetValue(loc.Key, out var value))
                         {
-                            value = loc.Value;
+                            combinedLocs[loc.Key] = loc.Value;
                         }
                         else
                         {

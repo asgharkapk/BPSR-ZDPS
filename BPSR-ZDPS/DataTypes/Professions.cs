@@ -25,6 +25,8 @@ namespace BPSR_ZDPS.DataTypes
                     return Path.Combine("Professions", "Profession_4");
                 case EProfessionId.Profession_VerdantOracle:
                     return Path.Combine("Professions", "Profession_5");
+                case EProfessionId.Profession_Dorothy:
+                    return Path.Combine("Professions", "Profession_8");
                 case EProfessionId.Profession_HeavyGuardian:
                     return Path.Combine("Professions", "Profession_9");
                 case EProfessionId.Profession_Marksman:
@@ -33,6 +35,10 @@ namespace BPSR_ZDPS.DataTypes
                     return Path.Combine("Professions", "Profession_12");
                 case EProfessionId.Profession_BeatPerformer:
                     return Path.Combine("Professions", "Profession_13");
+                case EProfessionId.Profession_Lucy:
+                    return Path.Combine("Professions", "Profession_14");
+                case EProfessionId.Profession_Natsu:
+                    return Path.Combine("Professions", "Profession_15");
                 default:
                     return "";
             }
@@ -46,12 +52,14 @@ namespace BPSR_ZDPS.DataTypes
             3 => AppStrings.GetLocalized("Profession_TwinStriker"),
             4 => AppStrings.GetLocalized("Profession_WindKnight"),
             5 => AppStrings.GetLocalized("Profession_VerdantOracle"),
-            8 => "Thunder Flash Hand Cannon", // ThunderHandCannon
+            8 => AppStrings.GetLocalized("Profession_Dorothy"), // Hand Cannon
             9 => AppStrings.GetLocalized("Profession_HeavyGuardian"),
             10 => "Dark Spirit Dance Ritual Blade", // DarkSpiritDance
             11 => AppStrings.GetLocalized("Profession_Marksman"),
             12 => AppStrings.GetLocalized("Profession_ShieldKnight"),
             13 => AppStrings.GetLocalized("Profession_BeatPerformer"),
+            14 => AppStrings.GetLocalized("Profession_Lucy"),
+            15 => AppStrings.GetLocalized("Profession_Natsu"),
             _ => ""
         };
 
@@ -144,10 +152,13 @@ namespace BPSR_ZDPS.DataTypes
             1601 or 1605 or 1606 or 1607 or 1608 or 1609 or 1610 or 1611 or 1612 or 1613 or 1614 or 1615 or 1616 or 1617 or 1618 or 1621 => 3, // Twin Striker
             1401 or 1410 or 1418 or 1419 or 1420 or 1421 or 1422 or 1423 or 1424 or 1425 or 1426 or 1430 or 1431 => 4, // WindKnight
             1501 or 1507 or 1509 or 1518 or 1519 or 1520 or 1521 or 1522 or 1523 or 1524 or 1527 or 1528 or 1529 or 1531 => 5, // VerdantOracle
+            2900441 or 1850 or 45300 => 8, // Dorothy
             1901 or 1907 or 1917 or 1922 or 1923 or 1924 or 1925 or 1926 or 1927 or 1930 or 1932 or 1936 or 1937 or 1938 or 1940 => 9, // HeavyGuardian
             2201 or 2209 or 2220 or 2222 or 2230 or 2231 or 2232 or 2233 or 2234 or 2235 or 2237 or 2238 => 11, // Marksman
             2401 or 2405 or 2406 or 2407 or 2408 or 2409 or 2410 or 2412 or 2414 or 2415 or 2419 or 2420 or 2421 => 12, // ShieldKnight
             2301 or 2306 or 2307 or 2308 or 2309 or 2310 or 2311 or 2312 or 2313 or 2314 or 2315 or 2316 or 2321 or 2335 or 2336 => 13, // BeatPerformer
+            2501 or 250101 or 2502 or 2503 or 2504 => 14, // Lucy
+            2601 or 2602 or 2603 or 2604 => 14, // Natsu
             _ => 0
         };
 
@@ -155,21 +166,21 @@ namespace BPSR_ZDPS.DataTypes
         {
             0 => SubProfessionId.SubProfession_Unknown,
             1714 or 1734 => SubProfessionId.SubProfession_Iaido, // 1714 = Core Skill: Iaido Slash, 179908 = spec skill?, 1724 = spec skill Thunder Cut?
-            1715 or 1740 or 1741 or 179906 => SubProfessionId.SubProfession_Moonstrike, // 44701 = Core Skill: Moon Blade
+            1715 or 1738 or 179906 => SubProfessionId.SubProfession_Moonstrike, // 44701 = Core Skill: Moon Blade, 1740 and 1741 can be accessed from Factors
             120901 or 120902 => SubProfessionId.SubProfession_Icicle,
             1241 => SubProfessionId.SubProfession_Frostbeam,
-            35107 or 35108 or 35109 or 160102 => SubProfessionId.SubProfession_FormlessExpertise,
-            1606 or 1621 or 1622 or 1623 => SubProfessionId.SubProfession_CrimsonExpertise,
+            160102 or 2208181 or 2208172 => SubProfessionId.SubProfession_FormlessExpertise, // 35107, 35108, 35109 can be accessed from Factors
+            1606 or 1621 or 1622 or 35104 => SubProfessionId.SubProfession_CrimsonExpertise, // 1623 can be accessed from Factors
             1405 or 1418 => SubProfessionId.SubProfession_Vanguard,
             1419 => SubProfessionId.SubProfession_Skyward,
             1518 or 1541 or 21402 => SubProfessionId.SubProfession_Smite,
             20301 => SubProfessionId.SubProfession_Lifebind,
-            199902 => SubProfessionId.SubProfession_Earthfort,
+            1941 or 2201240 => SubProfessionId.SubProfession_Earthfort, // 199902 can be accessed from Factors
             1930 or 1931 or 1934 or 1935 => SubProfessionId.SubProfession_Block,
             2292 or 1700820 or 1700825 or 1700827 => SubProfessionId.SubProfession_Wildpack,
             220112 or 2203622 or 220106 => SubProfessionId.SubProfession_Falconry,
-            2405 => SubProfessionId.SubProfession_Recovery,
-            2406 => SubProfessionId.SubProfession_Shield,
+            2405 or 2411 or 2206401 => SubProfessionId.SubProfession_Recovery,
+            2406 or 55412 or 55417 => SubProfessionId.SubProfession_Shield,
             2321 or 2335 => SubProfessionId.SubProfession_Dissonance, // 2306 = Core Skill: Amplified Beat, 2362 maybe works?
             2301 or 2336 or 2361 or 55302 => SubProfessionId.SubProfession_Concerto, // 2307 = Core Skill: Healing Beat
             _ => SubProfessionId.SubProfession_Unknown
@@ -178,24 +189,24 @@ namespace BPSR_ZDPS.DataTypes
         public static string GetSubProfessionNameBySkillId(int skillId) => skillId switch
         {
             0 => AppStrings.GetLocalized("SubProfession_Unknown"),
-            1714 or 1734 or 1739 or 179908 => AppStrings.GetLocalized("SubProfession_Iaido"),
-            1715 or 1740 or 1741 or 179906 => AppStrings.GetLocalized("SubProfession_Moonstrike"),
+            1714 or 1734 => AppStrings.GetLocalized("SubProfession_Iaido"),
+            1715 or 1738 or 179906 => AppStrings.GetLocalized("SubProfession_Moonstrike"),
             120901 or 120902 => AppStrings.GetLocalized("SubProfession_Icicle"),
             1241 => AppStrings.GetLocalized("SubProfession_Frostbeam"),
-            35107 or 35108 or 35109 or 160102 => AppStrings.GetLocalized("SubProfession_FormlessExpertise"),
-            1606 or 1621 or 1622 or 1623 => AppStrings.GetLocalized("SubProfession_CrimsonExpertise"),
+            160102 or 2208181 or 2208172 => AppStrings.GetLocalized("SubProfession_FormlessExpertise"),
+            1606 or 1621 or 1622 or 35104 => AppStrings.GetLocalized("SubProfession_CrimsonExpertise"),
             1405 or 1418 => AppStrings.GetLocalized("SubProfession_Vanguard"),
             1419 => AppStrings.GetLocalized("SubProfession_Skyward"),
             1518 or 1541 or 21402 => AppStrings.GetLocalized("SubProfession_Smite"),
             20301 => AppStrings.GetLocalized("SubProfession_Lifebind"),
-            199902 => AppStrings.GetLocalized("SubProfession_Earthfort"),
+            1941 or 2201240 => AppStrings.GetLocalized("SubProfession_Earthfort"),
             1930 or 1931 or 1934 or 1935 => AppStrings.GetLocalized("SubProfession_Block"),
             2292 or 1700820 or 1700825 or 1700827 => AppStrings.GetLocalized("SubProfession_Wildpack"),
             220112 or 2203622 or 220106 => AppStrings.GetLocalized("SubProfession_Falconry"),
-            2405 => AppStrings.GetLocalized("SubProfession_Recovery"),
-            2406 => AppStrings.GetLocalized("SubProfession_Shield"),
-            2306 => AppStrings.GetLocalized("SubProfession_Dissonance"),
-            2307 or 2361 or 55302 => AppStrings.GetLocalized("SubProfession_Concerto"),
+            2405 or 2411 or 2206401 => AppStrings.GetLocalized("SubProfession_Recovery"),
+            2406 or 55412 or 55417 => AppStrings.GetLocalized("SubProfession_Shield"),
+            2321 or 2335 => AppStrings.GetLocalized("SubProfession_Dissonance"),
+            2301 or 2336 or 2361 or 55302 => AppStrings.GetLocalized("SubProfession_Concerto"),
             _ => ""
         };
 
@@ -348,7 +359,7 @@ namespace BPSR_ZDPS.DataTypes
             }
             else if (professionName == AppStrings.GetLocalized("Profession_TwinStriker") || professionName == AppStrings.GetLocalized("SubProfession_FormlessExpertise") || professionName == AppStrings.GetLocalized("SubProfession_CrimsonExpertise"))
             {
-                return Colors.FromColor(ColorTranslator.FromHtml("#F5A614"));
+                return Colors.FromColor(ColorTranslator.FromHtml("#BA7f12"));
             }
             else if (professionName == AppStrings.GetLocalized("Profession_WindKnight") || professionName == AppStrings.GetLocalized("SubProfession_Skyward") || professionName == AppStrings.GetLocalized("SubProfession_Vanguard"))
             {
@@ -360,7 +371,7 @@ namespace BPSR_ZDPS.DataTypes
             }
             else if (professionName == AppStrings.GetLocalized("Profession_HeavyGuardian") || professionName == AppStrings.GetLocalized("SubProfession_Earthfort") || professionName == AppStrings.GetLocalized("SubProfession_Block"))
             {
-                return Colors.FromColor(ColorTranslator.FromHtml("#537758"));
+                return Colors.FromColor(ColorTranslator.FromHtml("#7D6033"));
             }
             else if (professionName == AppStrings.GetLocalized("Profession_Marksman") || professionName == AppStrings.GetLocalized("SubProfession_Falconry") || professionName == AppStrings.GetLocalized("SubProfession_Wildpack"))
             {
@@ -528,7 +539,7 @@ namespace BPSR_ZDPS.DataTypes
             }
             else if (professionId == (int)EProfessionId.Profession_TwinStriker || professionId == (int)SubProfessionId.SubProfession_FormlessExpertise || professionId == (int)SubProfessionId.SubProfession_CrimsonExpertise)
             {
-                return Colors.FromColor(ColorTranslator.FromHtml("#F5A614"));
+                return Colors.FromColor(ColorTranslator.FromHtml("#BA7f12"));
             }
             else if (professionId == (int)EProfessionId.Profession_WindKnight || professionId == (int)SubProfessionId.SubProfession_Skyward || professionId == (int)SubProfessionId.SubProfession_Vanguard)
             {
@@ -540,7 +551,7 @@ namespace BPSR_ZDPS.DataTypes
             }
             else if (professionId == (int)EProfessionId.Profession_HeavyGuardian || professionId == (int)SubProfessionId.SubProfession_Earthfort || professionId == (int)SubProfessionId.SubProfession_Block)
             {
-                return Colors.FromColor(ColorTranslator.FromHtml("#537758"));
+                return Colors.FromColor(ColorTranslator.FromHtml("#7D6033"));
             }
             else if (professionId == (int)EProfessionId.Profession_Marksman || professionId == (int)SubProfessionId.SubProfession_Falconry || professionId == (int)SubProfessionId.SubProfession_Wildpack)
             {
@@ -554,6 +565,10 @@ namespace BPSR_ZDPS.DataTypes
             {
                 return Colors.FromColor(ColorTranslator.FromHtml("#9C5353"));
             }
+            else if (professionId == (int)EProfessionId.Profession_Lucy || professionId == (int)EProfessionId.Profession_Natsu)
+            {
+                return Colors.FromColor(ColorTranslator.FromHtml("#DB8787"));
+            }
 
             // TODO: Add SubProfessions as their own entries to allow further coloring: DONE
 
@@ -565,7 +580,10 @@ namespace BPSR_ZDPS.DataTypes
             switch (professionId)
             {
                 case (int)EProfessionId.Profession_Stormblade:
+                case (int)EProfessionId.Profession_Dorothy:
                 case (int)EProfessionId.Profession_Marksman:
+                case (int)EProfessionId.Profession_Lucy:
+                case (int)EProfessionId.Profession_Natsu:
                     {
                         return "Agility";
                     }
@@ -587,8 +605,6 @@ namespace BPSR_ZDPS.DataTypes
             }
         }
 
-
-
         public static ERoleType GetRoleFromBaseProfessionId(int professionId)
         {
             switch (professionId)
@@ -597,7 +613,10 @@ namespace BPSR_ZDPS.DataTypes
                 case (int)EProfessionId.Profession_FrostMage:
                 case (int)EProfessionId.Profession_TwinStriker:
                 case (int)EProfessionId.Profession_WindKnight:
+                case (int)EProfessionId.Profession_Dorothy:
                 case (int)EProfessionId.Profession_Marksman:
+                case (int)EProfessionId.Profession_Lucy:
+                case (int)EProfessionId.Profession_Natsu:
                     return ERoleType.DPS;
                 case (int)EProfessionId.Profession_HeavyGuardian:
                 case (int)EProfessionId.Profession_ShieldKnight:

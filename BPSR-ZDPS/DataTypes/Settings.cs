@@ -33,6 +33,7 @@ public class Settings
     public bool SplitEncountersOnNewPhases { get; set; } = true;
     public bool SkipSkillSnapshotSavingInOpenWorld { get; set; } = false;
     public bool DisplayTruePerSecondValuesInMeters { get; set; } = false;
+    public bool HideEncounterPerSecondValuesInMeters { get; set; } = false;
     public bool AllowGamepadNavigationInputInZDPS { get; set; } = false;
     public bool KeepPastEncounterInMeterUntilNextDamage { get; set; } = true;
     public bool ShowChannelLineNumberInStatus { get; set; } = true;
