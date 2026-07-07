@@ -213,7 +213,7 @@ namespace BPSR_ZDPS.DataTypes
         // NEW COLORS
         public static Vector4 ProfessionColors(string professionName)
         {
-            // Unknown (BUG: There is a bug with Profession_Unknown progress bar not being visible in Malice raid)
+            // Unknown
             if (professionName == AppStrings.GetLocalized("Profession_Unknown"))
             {
                 return Colors.FromColor(ColorTranslator.FromHtml("#6c757d")); // Muted Slate Gray
@@ -339,6 +339,15 @@ namespace BPSR_ZDPS.DataTypes
             {
                 return Colors.FromColor(ColorTranslator.FromHtml("#613636")); // Dark Mahogany
             }
+            //(FIXED: BUG: There is a bug with progress bar not being visible when player transforms to Lucy or Natsu)
+            else if (professionName == AppStrings.GetLocalized("Profession_Lucy"))
+            {
+                return Colors.FromColor(ColorTranslator.FromHtml("#B87333"));
+            }
+            else if (professionName == AppStrings.GetLocalized("Profession_Natsu"))
+            {
+                return Colors.FromColor(ColorTranslator.FromHtml("#A6682F"));
+            }
 
             return new Vector4();
         }
@@ -386,14 +395,14 @@ namespace BPSR_ZDPS.DataTypes
                 return Colors.FromColor(ColorTranslator.FromHtml("#9C5353"));
             }
 
-            // TODO: Add SubProfessions as their own entries to allow further coloring: DONE
+            // DONE: TODO: Add SubProfessions as their own entries to allow further coloring
 
             return new Vector4();
         }
 */
         public static Vector4 ProfessionColors(int professionId)
         {
-            // Unknown (BUG: There is a bug with Profession_Unknown progress bar not being visible in Malice raid)
+            // Unknown 
             if (professionId == (int)EProfessionId.Profession_Unknown)
             {
                 return Colors.FromColor(ColorTranslator.FromHtml("#6c757d")); // Muted Slate Gray
@@ -519,6 +528,15 @@ namespace BPSR_ZDPS.DataTypes
             {
                 return Colors.FromColor(ColorTranslator.FromHtml("#613636")); // Dark Mahogany
             }
+            //(FIXED: BUG: There is a bug with progress bar not being visible when player transforms to Lucy or Natsu)
+            else if (professionId == (int)EProfessionId.Profession_Lucy)
+            {
+                return Colors.FromColor(ColorTranslator.FromHtml("#B87333"));
+            }
+            else if (professionId == (int)EProfessionId.Profession_Natsu)
+            {
+                return Colors.FromColor(ColorTranslator.FromHtml("#A6682F"));
+            }
 
             return new Vector4();
         }
@@ -570,7 +588,7 @@ namespace BPSR_ZDPS.DataTypes
                 return Colors.FromColor(ColorTranslator.FromHtml("#DB8787"));
             }
 
-            // TODO: Add SubProfessions as their own entries to allow further coloring: DONE
+            // DONE: TODO: Add SubProfessions as their own entries to allow further coloring
 
             return new Vector4();
         }
