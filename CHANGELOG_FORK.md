@@ -2,8 +2,6 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
-
 ### Added
 - Automatic GitHub releases via GitHub Actions.
 - Season Strength display in Healing and Tanking meters.
@@ -55,5 +53,4 @@ All notable changes to this project will be documented in this file.
 - **Viewing Historical Encounter Data** button/warning to reduce UI clutter.
 
 ### Merged
-- Synced with the latest upstream changes from `Blue-Protocol-Source/master`.
-```
+- Synced with the latest upstream changes from `Blue-Protocol-Source/BPSR-ZDPS`.
